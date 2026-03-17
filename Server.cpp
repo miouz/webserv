@@ -37,7 +37,7 @@ void Server::setUpServer(void)
 		throw std::runtime_error(std::string("bind: ") + strerror(errno));
 
 
-	if (listen(sockFd_, 128) == RETURN_ERROR)
+	if (listen(sockFd_, SOMAXCONN) == RETURN_ERROR)
 		throw std::runtime_error(std::string("listen: ") + strerror(errno));
 
 	#ifdef DEBUG
