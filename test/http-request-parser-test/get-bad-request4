@@ -1,0 +1,3 @@
+GET / HTTP/1.0 garbage
+
+result = 400 Bad Request

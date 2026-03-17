@@ -1,0 +1,3 @@
+GET blabla.html HTTP/1.0
+
+result = 400 Bad Request
