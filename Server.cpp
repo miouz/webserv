@@ -1,5 +1,17 @@
 #include "Server.hpp"
 
+Server::Server(int fd, int port): sockFd_(fd), port_(port){}
+
+void Server::setSockFd(int fd){ sockFd_ = fd;}
+
+void Server::setPort(int port){ port_ = port;}
+
+int Server::getSockFd() const { return sockFd_;}
+
+struct sockaddr_in Server::getAddress() const { return address_; }
+
+int Server::getPort() const { return port_; }
+
 /**
  * @brief this function close all fds and free everything before shutting down the server
  */
