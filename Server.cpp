@@ -42,7 +42,8 @@ Server::~Server()
 /**
  * @brief it creats client and add the client to clinets_ of the server
  *
- * @return pointer to the allocated client
+ * @return address to the new added client who owned by server
+ * @warning the ownership of client belongs to its server
  */
 Client* Server::acceptClient()
 {
