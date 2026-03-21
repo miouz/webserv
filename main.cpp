@@ -11,6 +11,10 @@ int main()
 	std::vector<Client*> clients;
 	std::vector<pollfd> fdPool;
 
+	servers.reserve(1024);
+	clients.reserve(1024);
+	fdPool.reserve(1024);
+
 	//TODO: parser .config and setup each server by calling server's constructor
 	Server server[SERVER_NUM];
 	servers.insert(servers.begin(), &server[0], &servers[SERVER_NUM]);
@@ -25,8 +29,8 @@ int main()
 		}
 		catch(std::exception& e){
 			std::cerr << "cant set up server:" << e.what() << "\n";
-			servers[i].closeServer();
 			servers.erase(servers.begin() + i);
+			i--;
 		}
 	}
 
@@ -56,7 +60,8 @@ int main()
 			if (isServer(fd))
 			{
 				Client *newClient = findServer(fd, servers).acceptClient();
-				clients.push_back(newClient);
+				if (newClient)
+					clients.push_back(newClient);
 			}
 			//if is client then handle request or send reply
 			else {
