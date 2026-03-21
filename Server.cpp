@@ -95,3 +95,23 @@ void Server::setUpServer(void)
 	std::cout << "server is set up on fd " << sockFd_ << ", listening on port " << port_ << "\n";
 	#endif
 }
+bool	isServer(int fd, std::vector<Server>& servers)
+{
+	for (int i = 0; i < servers.size(); i++)
+	{
+		if (fd == servers[i].getSockFd())
+			return true;
+	}
+	return false;
+}
+
+
+Server* findServer(int fd, std::vector<Server>& servers)
+{
+	for (int i = 0; i < servers.size(); i++)
+	{
+		if (fd == servers[i].getSockFd())
+			return &(servers[i]);
+	}
+	return NULL;
+}
