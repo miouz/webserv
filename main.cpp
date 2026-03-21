@@ -30,6 +30,44 @@ int main()
 		}
 	}
 
+	if (servers.size() == 0)
+	{
+		std::cerr << "No server to run\n";
+		exit(EXIT_FAILURE);
+	}
 
+	//poll the fds to get event
+	while (true) {
+		int status = poll(fdPool.data(), fdPool.size(), 1000);
+		if (status < 0)
+		{
+			std::cerr << " poll error:" << strerror(errno) << "\n";
+			shutDownServers(servers, clients);
+		}
+		for (int i = 0; i < fdPool.size(); i++)
+		{
+			if (!fdPool[i].revents)
+				continue ;
+
+			int fd = fdPool[i].fd;
+			if (fdPool[i].revents & POLLHUP | POLLERR)
+				removeClient(findClient(fd));
+			//if is server : accept and creat client
+			if (isServer(fd))
+			{
+				Client *newClient = findServer(fd, servers).acceptClient();
+				clients.push_back(newClient);
+			}
+			//if is client then handle request or send reply
+			else {
+				Client *client = findClient(fd);
+				if (fdPool[i].revents & POLLIN)
+					client->getRequest();
+				if (fdPool[i].revents & POLLOUT)
+					client->sendReply();
+			}
+		}
+	}
+	shutDownServers(servers, clients);
 	return EXIT_SUCCESS;
 }
