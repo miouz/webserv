@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <poll.h>
+#include "Client.hpp"
 
 #define RETURN_ERROR -1
 
@@ -14,21 +15,26 @@ class Server
 {
 	int sockFd_;
 	int port_;
-	std::vector<pollfd> fds;
 	sockaddr_in address_;
+	std::vector<Client> clients_;
 
 	public:
-	Server(){}
+	Server();
 	Server(int fd, int port);
+	~Server();
 
-	//getter and setters
+	//getter and setter
 	void setSockFd(int fd);
 	void setPort(int port);
 	int getSockFd() const;
-	struct sockaddr_in getAddress() const;
+	sockaddr_in getAddress() const;
 	int getPort() const;
+	std::vector<Client> getClients() const;
 
 	void setUpServer();
+	Client* acceptClient();
 	void closeServer();
 };
 
+pollfd fdToPollfd(int fd);
+pollfd fdToPollfdWithStatus(int fd, int status);
