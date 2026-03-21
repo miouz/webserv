@@ -40,6 +40,25 @@ Server::~Server()
 }
 
 /**
+ * @brief it creats client and add the client to clinets_ of the server
+ *
+ * @return pointer to the allocated client
+ */
+Client* Server::acceptClient()
+{
+	struct sockaddr_in addr;
+	socklen_t len = sizeof(addr);
+	int fd = accept(sockFd_, (struct sockaddr*)&addr, &len);
+	if (fd == RETURN_ERROR)
+	{
+		std::cerr << "Error: can't accept new client:" << std::strerror(errno) << "\n";
+		return NULL;
+	}
+	clients_.emplace_back(fd, addr);
+	return &clients_.back();
+}
+
+/**
  * @brief set up a server with informations inside Server object.
  *
  * @detail it creats a socket, set up the socket , bind it to 
