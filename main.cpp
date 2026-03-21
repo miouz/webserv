@@ -1,33 +1,35 @@
 #include "Server.hpp"
+#include "Client.hpp"
+#include <algorithm>
+#include <vector>
 
 #define SERVER_NUM 1
 
 int main()
 {
-	Server servers[SERVER_NUM];
+	std::vector<Server> servers;
+	std::vector<Client*> clients;
+	std::vector<pollfd> fdPool;
 
-	servers[0].setPort(8080);
-
+	//TODO: parser .config and setup each server by calling server's constructor
+	Server server[SERVER_NUM];
+	servers.insert(servers.begin(), &server[0], &servers[SERVER_NUM]);
+	
+	//set up each server
 	for (int i = 0; i < SERVER_NUM; i++)
 	{
 		try {
 		servers[i].setUpServer();
+		pollfd serverFd = fdToPollfdWithStatus(servers[i].getSockFd(), POLLIN);
+		fdPool.push_back(serverFd);
 		}
 		catch(std::exception& e){
 			std::cerr << "cant set up server:" << e.what() << "\n";
 			servers[i].closeServer();
+			servers.erase(servers.begin() + i);
 		}
 	}
 
-	socklen_t len = sizeof(servers[0].getAddress());
-	struct sockaddr_in addr = servers[0].getAddress();
-	while (1)
-	{
-		int newFd = accept(servers[0].getSockFd(), (struct sockaddr*)&addr, &len);
-		if (newFd > 0)
-			std::cout << "Viens la mon mignon\n";
-		
-	}
 
 	return EXIT_SUCCESS;
 }
