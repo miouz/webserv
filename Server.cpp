@@ -15,11 +15,28 @@ struct sockaddr_in Server::getAddress() const { return address_; }
 int Server::getPort() const { return port_; }
 
 /**
- * @brief this function close all fds and free everything before shutting down the server
+ * @brief this function closes server's fd 
+ * and erase its related clients on vector in order to call the
+ * client's destructor.
  */
-void Server::closeServer(void)
+void Server::closeServer()
 {
-	close(sockFd_);
+	// avoid double close
+	if (sockFd_ != -1)
+	{
+		close(sockFd_);
+	#ifdef DEBUG
+	std::cout << "Server on fd " << sockFd_ << " is down\n";
+	#endif
+		sockFd_ = -1;
+	}
+	//call its clients' destructors
+	clients_.clear();
+}
+
+Server::~Server()
+{
+	closeServer();
 }
 
 /**
