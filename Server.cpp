@@ -2,7 +2,7 @@
 
 Server::Server(): sockFd_(-1), port_(-1){clients_.reserve(1024);}
 
-Server::Server(int fd, int port): sockFd_(fd), port_(port){clients_.reserve.1024;}
+Server::Server(int fd, int port): sockFd_(fd), port_(port){clients_.reserve(1024);}
 
 void Server::setSockFd(int fd){ sockFd_ = fd;}
 
