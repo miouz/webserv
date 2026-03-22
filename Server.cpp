@@ -132,3 +132,14 @@ Server* findServer(int fd, std::vector<Server>& servers)
 	}
 	return NULL;
 }
+
+void	shutDownServers(std::vector<Server>& servers)
+{
+	servers.clear();
+}
+
+void removeClientFromServer(Client* client, std::vector<Server>& servers)
+{
+	int serverIndex = (*clients).getServer();
+	servers[serverIndex].removeClient(*clients);
+}
