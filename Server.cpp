@@ -95,6 +95,23 @@ void Server::setUpServer(void)
 	std::cout << "server is set up on fd " << sockFd_ << ", listening on port " << port_ << "\n";
 	#endif
 }
+
+
+/**
+ * @brief this function removes a client from the server's clients_ list,
+ * it calls the client's destructor by using clients_[i].erase()
+ *
+ * @param client reference of the client to remove
+ */
+void Server::removeClient(Client& client)
+{
+	for (int i = 0; i < clients_.size(); i++)
+	{
+		if (client == clients_[i])
+			clients_.erase(i);
+	}
+}
+
 bool	isServer(int fd, std::vector<Server>& servers)
 {
 	for (int i = 0; i < servers.size(); i++)
