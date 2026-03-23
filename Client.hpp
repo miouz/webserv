@@ -49,4 +49,5 @@ class Client
 	void closeClient();
 	void removeFromServer();
 };
+Client* findClient(int fd, std::vector<Client*>& clients);
 #endif // !CLIENT_HPP
