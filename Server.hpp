@@ -1,3 +1,6 @@
+#ifndef SERVER_HPP
+#define SERVER_HPP
+
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
@@ -42,3 +45,4 @@ Server* findServer(int fd, std::vector<Server>& servers);
 pollfd fdToPollfd(int fd);
 pollfd fdToPollfdWithStatus(int fd, int status);
 void	shutDownServers(std::vector<Server>& servers);
+#endif // !SERVER_HPP
