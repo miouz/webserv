@@ -53,4 +53,6 @@ class Client
 
 std::ostream& operator<<(std::ostream& out, Client& client);
 Client* findClient(int fd, std::vector<Client*>& clients);
+void	disconnectClient(int fd, std::vector<Client*>& clients,
+					  std::vector<pollfd>& fdPool, std::vector<pollfd>::iterator toRemove);
 #endif // !CLIENT_HPP

@@ -67,3 +67,30 @@ std::ostream& operator<<(std::ostream& out, Client& client)
 	return out;
 }
 
+/**
+ * @brief this function disconnect a client and clean its resources:
+ * firstly it removes its pollfd from the fdPool for poll() to watch,
+ * then erases it's pointer from vector clients,
+ * lastly it finds the client with the fd and remove the client
+ * from the server who owns it(client's destructor called here);
+ *
+ * @param fd the fd of the client to disconnect
+ * @param clients the vector<Client*>'s reference
+ * @param fdPool the vector<fdpool>'s reference'
+ * @param toRemove the iterator of the fd on fdPool to erase
+ * @warning use this function ONLY in a error-handling situation,
+ * otherwise the client is always cleaned by its Server owner
+ */
+void	disconnectClient(int fd, std::vector<Client*> clients,
+					  std::vector<pollfd>& fdPool, std::vector<pollfd>::iterator toRemove)
+{
+	fdPool.erase(toRemove);
+	Client* client = findClient(fd, clients);
+	if (client)
+	{
+		std::vector<Client*>::iterator clientFound = std::find(clients.begin(),
+														 clients.end(), client);
+		clients.erase(clientFound);
+	}
+	client->removeFromServer();
+}
