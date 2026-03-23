@@ -1,3 +1,6 @@
+#ifndef CLIENT_HPP
+#define CLIENT_HPP
+
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
@@ -19,3 +22,29 @@ enum clientStatus
 	RESPONSE_READY,
 	DISCONNECT
 };
+
+class Client
+{
+	int fd_;
+	Server& server_;
+	sockaddr_in address_;
+	std::string bufferIn_;
+	std::string bufferOut_;
+	clientStatus status_;
+	
+	public:
+	Client(int fd, Server& server, sockaddr_in& address);
+	~Client();
+	Client(const Client& other);
+
+	//getters and setters
+	int getFd() const;
+	sockaddr_in& getAddress();
+	clientStatus getStatus() const;
+	Server& getServer() const;
+	void setStatus(clientStatus status);
+	std::string& getBufferIn();
+	std::string& getBufferOut();
+
+};
+#endif // !CLIENT_HPP
