@@ -47,5 +47,6 @@ class Client
 	std::string& getBufferOut();
 
 	void closeClient();
+	void removeFromServer();
 };
 #endif // !CLIENT_HPP

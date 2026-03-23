@@ -1,4 +1,5 @@
 #include "Client.hpp"
+#include "Server.hpp"
 
 /**
  * @brief this constructor setup the client's attributes,
@@ -40,4 +41,9 @@ void Client::setStatus(clientStatus status) { status_ = status;}
 std::string& Client::getBufferIn() { return bufferIn_;}
 
 std::string& Client::getBufferOut() { return bufferOut_;}
+
+void Client::removeFromServer()
+{
+	server_.removeClient(*this);
+}
 
