@@ -10,7 +10,7 @@ void Server::setPort(int port){ port_ = port;}
 
 int Server::getSockFd() const { return sockFd_;}
 
-struct sockaddr_in Server::getAddress() const { return address_; }
+struct sockaddr_in& Server::getAddress() { return address_; }
 
 int Server::getPort() const { return port_; }
 

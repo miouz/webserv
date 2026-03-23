@@ -25,7 +25,7 @@ class Server
 	void setSockFd(int fd);
 	void setPort(int port);
 	int getSockFd() const;
-	sockaddr_in getAddress() const;
+	sockaddr_in& getAddress();
 	int getPort() const;
 	std::vector<Client> getClients() const;
 
