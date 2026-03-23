@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <poll.h>
 
 #define RETURN_ERROR -1
@@ -49,5 +50,7 @@ class Client
 	void closeClient();
 	void removeFromServer();
 };
+
+std::ostream& operator<<(std::ostream& out, Client& client);
 Client* findClient(int fd, std::vector<Client*>& clients);
 #endif // !CLIENT_HPP

@@ -57,3 +57,13 @@ Client* findClient(int fd, std::vector<Client*>& clients)
 	return NULL;
 }
 
+
+std::ostream& operator<<(std::ostream& out, Client& client)
+{
+	char ip4[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, &(client.getAddress().sin_addr), ip4, INET_ADDRSTRLEN);
+	out << "client on fd " << client.getFd()
+		<< ", address " << ip4 << ", on port " << client.getAddress().sin_port << "\n";
+	return out;
+}
+
