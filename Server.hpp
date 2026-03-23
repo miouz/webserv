@@ -39,3 +39,4 @@ bool	isServer(int fd, std::vector<Server>& servers);
 Server* findServer(int fd, std::vector<Server>& servers);
 pollfd fdToPollfd(int fd);
 pollfd fdToPollfdWithStatus(int fd, int status);
+void	shutDownServers(std::vector<Server>& servers);
