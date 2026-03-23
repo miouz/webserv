@@ -33,6 +33,7 @@ class Server
 
 	void setUpServer();
 	Client* acceptClient();
+	void removeClient(Client& client);
 	void closeServer();
 };
 

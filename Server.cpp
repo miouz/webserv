@@ -107,8 +107,8 @@ void Server::removeClient(Client& client)
 {
 	for (int i = 0; i < clients_.size(); i++)
 	{
-		if (client == clients_[i])
-			clients_.erase(i);
+		if (client.getFd() == clients_[i].getFd())
+			clients_.erase(clients_.begin() + i);
 	}
 }
 
@@ -121,7 +121,6 @@ bool	isServer(int fd, std::vector<Server>& servers)
 	}
 	return false;
 }
-
 
 Server* findServer(int fd, std::vector<Server>& servers)
 {
@@ -136,10 +135,4 @@ Server* findServer(int fd, std::vector<Server>& servers)
 void	shutDownServers(std::vector<Server>& servers)
 {
 	servers.clear();
-}
-
-void removeClientFromServer(Client* client, std::vector<Server>& servers)
-{
-	int serverIndex = (*clients).getServer();
-	servers[serverIndex].removeClient(*clients);
 }
