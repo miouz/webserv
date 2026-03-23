@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <poll.h>
 #include "Client.hpp"
+#include <netinet/in.h>
 
 class Server
 {
@@ -35,6 +36,7 @@ class Server
 	void closeServer();
 };
 
+std::ostream& operator<<(std::ostream& out, Server& server);
 bool	isServer(int fd, std::vector<Server>& servers);
 Server* findServer(int fd, std::vector<Server>& servers);
 pollfd fdToPollfd(int fd);

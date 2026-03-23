@@ -97,6 +97,7 @@ void Server::setUpServer(void)
 	if (listen(sockFd_, SOMAXCONN) == RETURN_ERROR)
 		throw std::runtime_error(std::string("listen: ") + strerror(errno));
 
+	std::cout << *this;
 	#ifdef DEBUG
 	std::cout << "server is set up on fd " << sockFd_ << ", listening on port " << port_ << "\n";
 	#endif
@@ -116,6 +117,16 @@ void Server::removeClient(Client& client)
 		if (client.getFd() == clients_[i].getFd())
 			clients_.erase(clients_.begin() + i);
 	}
+}
+
+std::ostream& operator<<(std::ostream& out, Server& server)
+{
+	char ip4[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, &(server.getAddress().sin_addr), ip4, INET_ADDRSTRLEN);
+	out << "server on fd " << server.getSockFd()
+		<< ", address " << ip4 << ", listening on port " << server.getPort()
+		<< ", connected to " << server.getClients().size() << " clients\n";
+	return out;
 }
 
 bool	isServer(int fd, std::vector<Server>& servers)
