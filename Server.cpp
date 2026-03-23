@@ -55,7 +55,13 @@ Client* Server::acceptClient()
 		std::cerr << "Error: can't accept new client:" << std::strerror(errno) << "\n";
 		return NULL;
 	}
-	clients_.emplace_back(fd, addr);
+	if (fcntl(fd, F_SETFL, O_NONBLOCK) == RETURN_ERROR
+		|| fcntl(fd, F_SETFD, FD_CLOEXEC) == RETURN_ERROR)
+	{
+		close(fd);
+		return NULL;
+	}
+	clients_.emplace_back(fd, *this, addr);
 	return &clients_.back();
 }
 

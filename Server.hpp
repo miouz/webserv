@@ -9,8 +9,6 @@
 #include <poll.h>
 #include "Client.hpp"
 
-#define RETURN_ERROR -1
-
 class Server
 {
 	int sockFd_;
