@@ -123,7 +123,7 @@ void Server::setUpServer(void)
  */
 void Server::removeClient(Client& client)
 {
-	for (int i = 0; i < clients_.size(); i++)
+	for (size_t i = 0; i < clients_.size(); i++)
 	{
 		if (client.getFd() == clients_[i].getFd())
 			clients_.erase(clients_.begin() + i);
@@ -142,7 +142,7 @@ std::ostream& operator<<(std::ostream& out, Server& server)
 
 bool	isServer(int fd, std::vector<Server>& servers)
 {
-	for (int i = 0; i < servers.size(); i++)
+	for (size_t i = 0; i < servers.size(); i++)
 	{
 		if (fd == servers[i].getSockFd())
 			return true;
@@ -152,7 +152,7 @@ bool	isServer(int fd, std::vector<Server>& servers)
 
 Server* findServer(int fd, std::vector<Server>& servers)
 {
-	for (int i = 0; i < servers.size(); i++)
+	for (size_t i = 0; i < servers.size(); i++)
 	{
 		if (fd == servers[i].getSockFd())
 			return &(servers[i]);
