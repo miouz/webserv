@@ -17,6 +17,7 @@ Server& Server::operator=(const Server& other)
 
 void Server::setSockFd(int fd){ sockFd_ = fd;}
 
+std::vector<Client>& Server::getClients(){return clients_;} 
 void Server::setPort(int port){ port_ = port;}
 
 int Server::getSockFd() const { return sockFd_;}

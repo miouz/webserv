@@ -32,7 +32,7 @@ class Server
 	int getSockFd() const;
 	sockaddr_in& getAddress();
 	int getPort() const;
-	std::vector<Client> getClients() const;
+	std::vector<Client>& getClients();
 
 	void setUpServer();
 	Client* acceptClient();
