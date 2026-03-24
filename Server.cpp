@@ -18,6 +18,7 @@ Server& Server::operator=(const Server& other)
 void Server::setSockFd(int fd){ sockFd_ = fd;}
 
 std::vector<Client>& Server::getClients(){return clients_;} 
+
 void Server::setPort(int port){ port_ = port;}
 
 int Server::getSockFd() const { return sockFd_;}
@@ -159,6 +160,15 @@ Server* findServer(int fd, std::vector<Server>& servers)
 			return &(servers[i]);
 	}
 	return NULL;
+}
+
+pollfd fdToPollfdWithStatus(int fd, int status)
+{
+	pollfd fdToReturn;
+
+	fdToReturn.fd = fd;
+	fdToReturn.events = status;
+	return fdToReturn;
 }
 
 void	shutDownServers(std::vector<Server>& servers)
