@@ -35,8 +35,8 @@ Client& Client::operator=(const Client& other)
 	fd_ = other.fd_;
 	server_ = other.server_;
 	address_ = other.address_;
-	readBuff_ = other.readBuff_;
 	status_ = other.status_;
+	return *this;
 }
 
 int Client::getFd() const {return fd_;}
