@@ -28,6 +28,17 @@ Client::~Client()
 Client::Client(const Client& other): fd_(other.fd_), server_(other.server_), address_(other.address_),
 	bufferIn_(other.bufferIn_), bufferOut_(other.bufferOut_), status_(other.status_){}
 
+Client& Client::operator=(const Client& other)
+{
+	if (this == &other)
+		return *this;
+	fd_ = other.fd_;
+	server_ = other.server_;
+	address_ = other.address_;
+	readBuff_ = other.readBuff_;
+	status_ = other.status_;
+}
+
 int Client::getFd() const {return fd_;}
 
 sockaddr_in& Client::getAddress() { return address_;}
