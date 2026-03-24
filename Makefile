@@ -8,13 +8,14 @@ MAKE_CMD ?= $(MAKE)
 CXX := c++
 CXXFLAGS := -Wall -Wextra -Werror
 CXXFLAGS += -std=c++98
-DEBUG_FLAGS := -DDEBUG -g -O0
+DEBUG_FLAGS := -DDEBUG -O0
 
 # ============================================================================ #
 #                                DIRECTORIES                                   #
 # ============================================================================ #
 
-SRC_DIR := .
+SRC_DIR := src
+TEST_DIR := test
 OBJ_DIR := objs
 
 # ============================================================================ #
@@ -24,8 +25,11 @@ OBJ_DIR := objs
 #Main
 # MAIN_SRC := $(SRC_DIR)/main.c
 
-# Get all .c files recursively
+# Get all .cpp files recursively
 SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
+
+# Get all test .cpp files recursively
+TEST_SRCS := $(shell find $(TEST_DIR) -name '*.cpp') $(SRCS)
 
 #Convert source files to object files
 OBJS := $(SRCS:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
@@ -57,9 +61,9 @@ all: $(NAME)
 	@printf "$(GREEN)$(BOLD)✓ Build complete!\n$(RESET)"
 
 #Link the final executable
-$(NAME): $(OBJS)
+$(NAME): main.cpp $(OBJS)
 	@printf "$(CYAN)Linking $(NAME)...\n$(RESET)"
-	@$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
+	@$(CXX) $(CXXFLAGS) main.cpp $(OBJS) -o $(NAME)
 	@printf "$(GREEN)$(BOLD)✓ $(NAME) created successfully!🥳🥳🥳\n$(RESET)"
 
 #Compile source files to object files
@@ -69,7 +73,11 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
 #Test suit
-test: $(NAME)
+test-bin: $(TEST_SRCS)
+	@$(CXX) $(CXXFLAGS) $(TEST_SRCS) -o $(TEST_DIR)/run_tests
+	$(TEST_DIR)/run_tests
+
+test:
 	@if [ ! -f $(TEST_SCRIPT) ]; then \
 		printf "$(RED)$(TEST_SCRIPT) not Found\n"; \
 		exit 1; \

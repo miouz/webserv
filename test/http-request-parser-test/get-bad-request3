@@ -1,3 +1,0 @@
-GET / garbage
-
-result = 400 Bad Request

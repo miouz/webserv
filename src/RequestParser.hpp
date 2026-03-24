@@ -31,11 +31,9 @@ class RequestParser
 		std::string	getToken(std::istringstream&) const;
 
 		void	setHeader(std::string&, std::string&);
-		void	checkHeaders(std::string&, std::string&) const;
-		void	checkStartLine() const;
-		void	checkBody() const;
+		void	checkHeaders(std::string&, std::string&);
+		void	checkStartLine();
 
-		void	capitalize(std::string&) const;
 
 	public:
 		RequestParser();
@@ -44,5 +42,7 @@ class RequestParser
 		bool	isComplete() const;
 		ParsedData	getData() const;
 };
+
+void	capitalize(std::string&);
 
 #endif
