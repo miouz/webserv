@@ -4,6 +4,17 @@ Server::Server(): sockFd_(-1), port_(-1){clients_.reserve(1024);}
 
 Server::Server(int fd, int port): sockFd_(fd), port_(port){clients_.reserve(1024);}
 
+Server& Server::operator=(const Server& other)
+{
+	if (this == &other)
+		return *this;
+	this->sockFd_ = other.sockFd_;
+	this->address_ = other.address_;
+	this->port_ = other.port_;
+	this->clients_ = other.clients_;
+	return *this;
+}
+
 void Server::setSockFd(int fd){ sockFd_ = fd;}
 
 void Server::setPort(int port){ port_ = port;}

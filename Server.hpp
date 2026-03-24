@@ -23,6 +23,7 @@ class Server
 	public:
 	Server();
 	Server(int fd, int port);
+	Server& operator=(const Server& other);
 	~Server();
 
 	//getter and setter
