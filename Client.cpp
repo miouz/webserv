@@ -92,7 +92,7 @@ std::ostream& operator<<(std::ostream& out, Client& client)
  * @warning use this function ONLY in a error-handling situation,
  * otherwise the client is always cleaned by its Server owner
  */
-void	disconnectClient(int fd, std::vector<Client*> clients,
+void	disconnectClient(int fd, std::vector<Client*>& clients,
 					  std::vector<pollfd>& fdPool, std::vector<pollfd>::iterator toRemove)
 {
 	fdPool.erase(toRemove);
