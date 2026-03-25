@@ -28,17 +28,6 @@ Client::~Client()
 Client::Client(const Client& other): fd_(other.fd_), server_(other.server_), address_(other.address_),
 	bufferIn_(other.bufferIn_), bufferOut_(other.bufferOut_), status_(other.status_){}
 
-Client& Client::operator=(const Client& other)
-{
-	if (this == &other)
-		return *this;
-	fd_ = other.fd_;
-	server_ = other.server_;
-	address_ = other.address_;
-	status_ = other.status_;
-	return *this;
-}
-
 int Client::getFd() const {return fd_;}
 
 sockaddr_in& Client::getAddress() { return address_;}
@@ -55,7 +44,7 @@ std::string& Client::getBufferOut() { return bufferOut_;}
 
 void Client::removeFromServer()
 {
-	server_.removeClient(*this);
+	server_.removeClient(this);
 }
 
 Client* findClient(int fd, std::vector<Client*>& clients)
@@ -99,6 +88,9 @@ void	disconnectClient(int fd, std::vector<Client*>& clients,
 	Client* client = findClient(fd, clients);
 	if (client)
 	{
+		#ifdef DEBUG
+		std::cout << *client << " disconnected\n";
+		#endif
 		std::vector<Client*>::iterator clientFound = std::find(clients.begin(),
 														 clients.end(), client);
 		clients.erase(clientFound);

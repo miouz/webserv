@@ -37,7 +37,6 @@ class Client
 	Client(int fd, Server& server, sockaddr_in& address);
 	~Client();
 	Client(const Client& other);
-	Client& operator=(const Client& other);
 
 	//getters and setters
 	int getFd() const;
