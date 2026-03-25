@@ -43,6 +43,6 @@ class Server
 std::ostream& operator<<(std::ostream& out, Server& server);
 bool	isServer(int fd, std::vector<Server>& servers);
 Server* findServer(int fd, std::vector<Server>& servers);
-pollfd fdToPollfdWithStatus(int fd, int status);
+pollfd fdToPollfdWithStatus(int fd, short event);
 void	shutDownServers(std::vector<Server>& servers);
 #endif // !SERVER_HPP

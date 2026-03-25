@@ -162,12 +162,13 @@ Server* findServer(int fd, std::vector<Server>& servers)
 	return NULL;
 }
 
-pollfd fdToPollfdWithStatus(int fd, int status)
+pollfd fdToPollfdWithStatus(int fd, short event)
 {
 	pollfd fdToReturn;
 
 	fdToReturn.fd = fd;
-	fdToReturn.events = status;
+	fdToReturn.events = event;
+	fdToReturn.revents = 0;
 	return fdToReturn;
 }
 
