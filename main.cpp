@@ -2,12 +2,14 @@
 #include "Client.hpp"
 #include <algorithm>
 #include <vector>
+#include <sys/types.h>
 
 #define SERVER_NUM 1
+#define POLL_TIMEOUT 1000
 
 int main()
 {
-	std::vector<Server> servers;
+	std::vector<Server*> servers;
 	std::vector<Client*> clients;
 	std::vector<pollfd> fdPool;
 
@@ -17,18 +19,20 @@ int main()
 
 	//TODO: parser .config and setup each server by calling server's constructor
 
-	servers.emplace_back(-1, 8080);
 
 	//set up each server
 	for (int i = 0; i < SERVER_NUM; i++)
 	{
 		try {
-		servers[i].setUpServer();
-		pollfd serverFd = fdToPollfdWithStatus(servers[i].getSockFd(), POLLIN);
+		servers.push_back(NULL);
+		servers[i] = new Server(-1, 8080);
+		servers[i]->setUpServer();
+		pollfd serverFd = fdToPollfdWithStatus(servers[i]->getSockFd(), POLLIN);
 		fdPool.push_back(serverFd);
 		}
 		catch(std::exception& e){
-			std::cerr << "cant set up server:" << e.what() << "\n";
+			std::cerr << "cant set up server " << i << " : "<< e.what() << "\n";
+			delete servers[i];
 			servers.erase(servers.begin() + i);
 			i--;
 		}
