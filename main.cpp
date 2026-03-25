@@ -16,9 +16,9 @@ int main()
 	fdPool.reserve(1024);
 
 	//TODO: parser .config and setup each server by calling server's constructor
-	Server server[SERVER_NUM];
-	servers.insert(servers.begin(), &server[0], &servers[SERVER_NUM]);
-	
+
+	servers.emplace_back(-1, 8080);
+
 	//set up each server
 	for (int i = 0; i < SERVER_NUM; i++)
 	{
