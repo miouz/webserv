@@ -49,8 +49,10 @@ int main()
 	//poll the fds to get event
 	while (true) {
 		#ifdef DEBUG
+		std::cout << "\nfdPool to watch:";
 		for (size_t i = 0; i<fdPool.size();i++)
-			std::cout << fdPool[i].fd << "\n";
+			std::cout << fdPool[i].fd << "  ";
+		std::cout << "\n";
 		#endif
 		int status = poll(fdPool.data(), fdPool.size(), POLL_TIMEOUT);
 		if (status < 0)
@@ -85,7 +87,7 @@ int main()
 					ssize_t bytesRead = read(client->getFd(), buff, READ_BUFF_SIZE);
 					#ifdef DEBUG
 					if(bytesRead > 0) 
-						std::cout << "recieved request:\n" << buff << "\n";
+						std::cout << "\nClient on fd "<<client->getFd() <<  " recieved request:\n" << buff << "\n";
 					#endif
 				}
 				if (fdPool[i].revents & POLLOUT)

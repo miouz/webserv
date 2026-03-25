@@ -60,10 +60,23 @@ Client* findClient(int fd, std::vector<Client*>& clients)
 
 std::ostream& operator<<(std::ostream& out, Client& client)
 {
-	char ip4[INET_ADDRSTRLEN];
-	inet_ntop(AF_INET, &(client.getAddress().sin_addr), ip4, INET_ADDRSTRLEN);
-	out << "client on fd " << client.getFd()
-		<< ", address " << ip4 << ", on port " << client.getAddress().sin_port << "\n";
+	out << "Client on fd " << client.getFd()
+		<<", port " << client.getAddress().sin_port << ":";
+	switch(client.getStatus())
+	{
+		case CONNECTED:
+			out << "CONNECTED\n";
+			break;
+		case REQUEST_COMPLETE:
+			out << "REQUEST_COMPLETE\n";
+			break;
+		case RESPONSE_READY:
+			out << "RESPONSE_READY\n";
+			break;
+		case DISCONNECT:
+			out << "DISCONNECT\n";
+	}
+	
 	return out;
 }
 
@@ -88,12 +101,12 @@ void	disconnectClient(int fd, std::vector<Client*>& clients,
 	Client* client = findClient(fd, clients);
 	if (client)
 	{
-		#ifdef DEBUG
-		std::cout << *client << " disconnected\n";
-		#endif
 		std::vector<Client*>::iterator clientFound = std::find(clients.begin(),
 														 clients.end(), client);
 		clients.erase(clientFound);
 	}
+	#ifdef DEBUG
+	std::cout << "\nClient on fd " << client->getFd() << " is DISCONNECTED now\n";
+	#endif
 	client->removeFromServer();
 }

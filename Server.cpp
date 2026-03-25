@@ -34,7 +34,7 @@ void Server::closeServer()
 	{
 		close(sockFd_);
 	#ifdef DEBUG
-	std::cout << "Server on fd " << sockFd_ << " is down\n";
+	std::cout << "Server on fd " << sockFd_ << " is shut down\n";
 	#endif
 		sockFd_ = -1;
 	}
@@ -70,7 +70,8 @@ Client* Server::acceptClient()
 	Client* newCLient = new (std::nothrow) Client(fd, *this, addr);
 	clients_.push_back(newCLient);
 	#ifdef DEBUG
-	std::cout << "connection established on fd " << sockFd_ << "\n";
+	std::cout << "\nConnection established on fd " << sockFd_ << ":\n"
+		<< *newCLient<<"\n";
 	#endif
 	return newCLient;
 }
@@ -85,6 +86,9 @@ Client* Server::acceptClient()
  */
 void Server::setUpServer(void)
 {
+	#ifdef DEBUG
+	std::cout << "Setting up server on port " << port_ << "\n";
+	#endif
 	int yes = 1;
 	sockFd_ = socket(PF_INET, SOCK_STREAM, 0);
 	if (sockFd_ == RETURN_ERROR)
@@ -108,9 +112,6 @@ void Server::setUpServer(void)
 		throw std::runtime_error(std::string("listen: ") + strerror(errno));
 
 	std::cout << *this;
-	#ifdef DEBUG
-	std::cout << "server is set up on fd " << sockFd_ << ", listening on port " << port_ << "\n";
-	#endif
 }
 
 
@@ -136,10 +137,8 @@ void Server::removeClient(Client* client)
 
 std::ostream& operator<<(std::ostream& out, Server& server)
 {
-	char ip4[INET_ADDRSTRLEN];
-	inet_ntop(AF_INET, &(server.getAddress().sin_addr), ip4, INET_ADDRSTRLEN);
-	out << "server on fd " << server.getSockFd()
-		<< ", address " << ip4 << ", listening on port " << server.getPort()
+	out << "\nServer on fd " << server.getSockFd()
+		<< ", listening on port " << server.getPort()
 		<< ", connected to " << server.getClients().size() << " clients\n";
 	return out;
 }
