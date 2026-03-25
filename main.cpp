@@ -5,6 +5,7 @@
 #include <sys/types.h>
 
 #define SERVER_NUM 1
+#define READ_BUFF_SIZE 1024
 #define POLL_TIMEOUT 1000
 
 int main()
@@ -44,39 +45,71 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 
+	char buff[READ_BUFF_SIZE] = {0};
 	//poll the fds to get event
 	while (true) {
-		int status = poll(fdPool.data(), fdPool.size(), 1000);
+		#ifdef DEBUG
+		for (size_t i = 0; i<fdPool.size();i++)
+			std::cout << fdPool[i].fd << "\n";
+		#endif
+		int status = poll(fdPool.data(), fdPool.size(), POLL_TIMEOUT);
 		if (status < 0)
 		{
 			std::cerr << " poll error:" << strerror(errno) << "\n";
-			shutDownServers(servers, clients);
+			shutDownServers(servers);
+			exit(EXIT_FAILURE);
 		}
-		for (int i = 0; i < fdPool.size(); i++)
+		if (status == 0)
+		{
+			//TODO: poll() timeout arrives, check if continue program, clients timeout and clean resources (next PR)
+			continue;
+		}
+		for (size_t i = 0; i < fdPool.size(); i++)
 		{
 			if (!fdPool[i].revents)
 				continue ;
 
 			int fd = fdPool[i].fd;
-			if (fdPool[i].revents & POLLHUP | POLLERR)
-				removeClient(findClient(fd));
-			//if is server : accept and creat client
-			if (isServer(fd))
+			if (fdPool[i].revents & (POLLHUP | POLLERR))
 			{
-				Client *newClient = findServer(fd, servers).acceptClient();
-				if (newClient)
-					clients.push_back(newClient);
+				disconnectClient(fd, clients, fdPool, fdPool.begin() + i);
+				i--;
+				continue;
 			}
-			//if is client then handle request or send reply
-			else {
-				Client *client = findClient(fd);
+			Client *client = findClient(fd, clients);
+			//if is client
+			if (client)
+			{
 				if (fdPool[i].revents & POLLIN)
-					client->getRequest();
+				{
+					ssize_t bytesRead = read(client->getFd(), buff, READ_BUFF_SIZE);
+					#ifdef DEBUG
+					if(bytesRead > 0) 
+						std::cout << "recieved request:\n" << buff << "\n";
+					#endif
+				}
 				if (fdPool[i].revents & POLLOUT)
-					client->sendReply();
+				{
+					#ifdef DEBUG
+					std::cout << "ready to send response\n";
+					#endif
+				}
+
+			}
+			//if is server
+			else {
+				Server* server = findServer(fd, servers);
+				if (server)
+					client = server->acceptClient();
+				if (client)
+				{
+					clients.push_back(client);
+					pollfd clientFd = fdToPollfdWithStatus(client->getFd(), POLLIN);
+					fdPool.push_back(clientFd);
+				}
 			}
 		}
 	}
-	shutDownServers(servers, clients);
+	shutDownServers(servers);
 	return EXIT_SUCCESS;
 }
