@@ -18,12 +18,11 @@ class Server
 	int sockFd_;
 	int port_;
 	sockaddr_in address_;
-	std::vector<Client> clients_;
+	std::vector<Client*> clients_;
 
 	public:
 	Server();
 	Server(int fd, int port);
-	Server& operator=(const Server& other);
 	~Server();
 
 	//getter and setter
@@ -32,17 +31,16 @@ class Server
 	int getSockFd() const;
 	sockaddr_in& getAddress();
 	int getPort() const;
-	std::vector<Client>& getClients();
+	std::vector<Client*>& getClients();
 
 	void setUpServer();
 	Client* acceptClient();
-	void removeClient(Client& client);
+	void removeClient(Client* client);
 	void closeServer();
 };
 
 std::ostream& operator<<(std::ostream& out, Server& server);
-bool	isServer(int fd, std::vector<Server>& servers);
-Server* findServer(int fd, std::vector<Server>& servers);
+Server* findServer(int fd, std::vector<Server*>& servers);
 pollfd fdToPollfdWithStatus(int fd, short event);
-void	shutDownServers(std::vector<Server>& servers);
+void	shutDownServers(std::vector<Server*>& servers);
 #endif // !SERVER_HPP

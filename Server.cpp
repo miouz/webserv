@@ -4,20 +4,9 @@ Server::Server(): sockFd_(-1), port_(-1){clients_.reserve(1024);}
 
 Server::Server(int fd, int port): sockFd_(fd), port_(port){clients_.reserve(1024);}
 
-Server& Server::operator=(const Server& other)
-{
-	if (this == &other)
-		return *this;
-	this->sockFd_ = other.sockFd_;
-	this->address_ = other.address_;
-	this->port_ = other.port_;
-	this->clients_ = other.clients_;
-	return *this;
-}
-
 void Server::setSockFd(int fd){ sockFd_ = fd;}
 
-std::vector<Client>& Server::getClients(){return clients_;} 
+std::vector<Client*>& Server::getClients(){return clients_;} 
 
 void Server::setPort(int port){ port_ = port;}
 
@@ -34,6 +23,12 @@ int Server::getPort() const { return port_; }
  */
 void Server::closeServer()
 {
+	for (size_t i = 0; i < clients_.size(); i++)
+	{
+		delete clients_[i];
+		clients_[i] = NULL;
+	}
+	clients_.clear();
 	// avoid double close
 	if (sockFd_ != -1)
 	{
@@ -43,8 +38,6 @@ void Server::closeServer()
 	#endif
 		sockFd_ = -1;
 	}
-	//call its clients' destructors
-	clients_.clear();
 }
 
 Server::~Server()
@@ -74,8 +67,12 @@ Client* Server::acceptClient()
 		close(fd);
 		return NULL;
 	}
-	clients_.emplace_back(fd, *this, addr);
-	return &clients_.back();
+	Client* newCLient = new (std::nothrow) Client(fd, *this, addr);
+	clients_.push_back(newCLient);
+	#ifdef DEBUG
+	std::cout << "connection established on fd " << sockFd_ << "\n";
+	#endif
+	return newCLient;
 }
 
 /**
@@ -119,16 +116,21 @@ void Server::setUpServer(void)
 
 /**
  * @brief this function removes a client from the server's clients_ list,
- * it calls the client's destructor by using clients_[i].erase()
+ * it calls the client's destructor by using delete and clients_.erase()
  *
  * @param client reference of the client to remove
  */
-void Server::removeClient(Client& client)
+void Server::removeClient(Client* client)
 {
+	if (!client)
+		return ;
 	for (size_t i = 0; i < clients_.size(); i++)
 	{
-		if (client.getFd() == clients_[i].getFd())
+		if (client->getFd() == clients_[i]->getFd())
+		{
+			delete clients_[i];
 			clients_.erase(clients_.begin() + i);
+		}
 	}
 }
 
@@ -142,22 +144,12 @@ std::ostream& operator<<(std::ostream& out, Server& server)
 	return out;
 }
 
-bool	isServer(int fd, std::vector<Server>& servers)
+Server* findServer(int fd, std::vector<Server*>& servers)
 {
 	for (size_t i = 0; i < servers.size(); i++)
 	{
-		if (fd == servers[i].getSockFd())
-			return true;
-	}
-	return false;
-}
-
-Server* findServer(int fd, std::vector<Server>& servers)
-{
-	for (size_t i = 0; i < servers.size(); i++)
-	{
-		if (fd == servers[i].getSockFd())
-			return &(servers[i]);
+		if (fd == servers[i]->getSockFd())
+			return servers[i];
 	}
 	return NULL;
 }
@@ -172,7 +164,9 @@ pollfd fdToPollfdWithStatus(int fd, short event)
 	return fdToReturn;
 }
 
-void	shutDownServers(std::vector<Server>& servers)
+void	shutDownServers(std::vector<Server*>& servers)
 {
+	for (size_t i = 0; i < servers.size(); i++)
+		delete servers[i];
 	servers.clear();
 }
