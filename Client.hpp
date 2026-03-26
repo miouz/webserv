@@ -11,8 +11,10 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <poll.h>
+#include <ctime>
 
 #define RETURN_ERROR -1
+#define CLIENT_TIMEOUT_SECONDES 30
 
 class Server;
 
@@ -32,9 +34,11 @@ class Client
 	std::string bufferIn_;
 	std::string bufferOut_;
 	clientStatus status_;
+	time_t lastActivityTime_;
+	
 	
 	public:
-	Client(int fd, Server& server, sockaddr_in& address);
+	Client(int fd, Server& server, sockaddr_in& address, time_t& creationTime);
 	~Client();
 	Client(const Client& other);
 

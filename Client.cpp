@@ -8,8 +8,9 @@
  * @param fd client's fd
  * @param server client's parent server
  * @param addr client's address
+ * @param creationTime client's creationTime by server
  */
-Client::Client(int fd, Server& server, sockaddr_in& addr): fd_(fd), server_(server), address_(addr), status_(CONNECTED){}
+Client::Client(int fd, Server& server, sockaddr_in& addr, time_t& creationTime): fd_(fd), server_(server), address_(addr), status_(CONNECTED), lastActivityTime_(creationTime) { }
 
 void Client::closeClient()
 {
@@ -26,7 +27,7 @@ Client::~Client()
 }
 
 Client::Client(const Client& other): fd_(other.fd_), server_(other.server_), address_(other.address_),
-	bufferIn_(other.bufferIn_), bufferOut_(other.bufferOut_), status_(other.status_){}
+	bufferIn_(other.bufferIn_), bufferOut_(other.bufferOut_), status_(other.status_), lastActivityTime_(other.lastActivityTime_){ }
 
 int Client::getFd() const {return fd_;}
 
