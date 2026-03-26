@@ -43,6 +43,7 @@ std::string& Client::getBufferIn() { return bufferIn_;}
 
 std::string& Client::getBufferOut() { return bufferOut_;}
 
+time_t	Client::getLastActivityTime() const { return lastActivityTime_; }
 void Client::removeFromServer()
 {
 	server_.removeClient(this);

@@ -50,6 +50,7 @@ class Client
 	void setStatus(clientStatus status);
 	std::string& getBufferIn();
 	std::string& getBufferOut();
+	time_t	getLastActivityTime() const;
 
 	void closeClient();
 	void removeFromServer();
