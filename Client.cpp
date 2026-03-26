@@ -95,17 +95,19 @@ std::ostream& operator<<(std::ostream& out, Client& client)
 	switch(client.getStatus())
 	{
 		case CONNECTED:
-			out << "CONNECTED\n";
+			out << "CONNECTED";
 			break;
 		case REQUEST_COMPLETE:
-			out << "REQUEST_COMPLETE\n";
+			out << "REQUEST_COMPLETE";
 			break;
 		case RESPONSE_READY:
-			out << "RESPONSE_READY\n";
+			out << "RESPONSE_READY";
 			break;
 		case DISCONNECT:
-			out << "DISCONNECT\n";
+			out << "DISCONNECT";
 	}
+	time_t lastActivityTime = client.getLastActivityTime();
+	out << " , last activity time at " << std::ctime(&lastActivityTime) << " \n";
 	
 	return out;
 }
