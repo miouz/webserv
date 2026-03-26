@@ -51,6 +51,11 @@ void Client::removeFromServer()
 }
 
 
+/**
+ * @brief this function check if the client hits a timeout(CLIENT_TIMEOUT_SECONDES) sinc lastActivityTime_
+ *
+ * @return true or false
+ */
 bool Client::isTimeOut()
 {
 	time_t now = std::time(NULL);
@@ -66,6 +71,9 @@ bool Client::isTimeOut()
 }
 
 
+/**
+ * @brief this function update the Client's lastActivityTime_ to now
+ */
 void Client::updateLastActivityTime()
 {
 	time_t now = std::time(NULL);
