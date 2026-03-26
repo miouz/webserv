@@ -51,17 +51,28 @@ void	RequestParser::parseHeaders()
 
 	if (isHeadersParsed_ == false && buffer_.find("\r\n\r\n") != std::string::npos)
 		isHeadersParsed_ = true;
+	#ifdef DEBUG
+		std::cout << "\n[key:value]\n";
+	#endif
 	while (1)
 	{
 		std::string	line = getLine(buffer_);
 		if (line.empty())
+		{
+			isHeadersParsed_ = true;
 			return ;
+		}
 		std::size_t	found = line.find(sep);
 		if (found == std::string::npos)
 			value = "";
 		else
 			value = line.substr(found + sep.size());
 		key = line.substr(0, found);
+
+		#ifdef DEBUG
+			std::cout << "\n[" << key << ":" << value << "]\n";
+		#endif
+
 		setHeader(key, value);
 	}
 }
@@ -75,7 +86,11 @@ void	RequestParser::parseBody()
 		if (buffer_.size() < totalSize)
 			return ;
 		data_.body = buffer_.substr(0, totalSize);
+
 	}
+	#ifdef DEBUG
+		std::cout << "\nBody = {\n" << data_.body << "\n}\n";
+	#endif
 	isBodyParsed_ = true;
 }
 
@@ -106,9 +121,8 @@ void	RequestParser::setHeader(std::string& key, std::string& value)
 	std::istringstream	iss(value);
 	iss >> value;
 	if (iss >> token)
-		throw std::runtime_error("400 Bad Request4");
+		throw std::runtime_error("400 Bad Request");
 	capitalize(key);
-	capitalize(value);
 	checkHeaders(key, value);
 	data_.headers[key] = value;
 }
@@ -131,17 +145,17 @@ void	RequestParser::checkStartLine()
 	for (int i = 0; i < NBR_METHODS; i++)
 		if (data_.method == methods[i])
 			return ;
-	throw std::runtime_error("400 Bad Request0");
+	throw std::runtime_error("400 Bad Request");
 }
 
 void	RequestParser::checkHeaders(std::string& key, std::string& value)
 {
 	if (key.find(" ") != std::string::npos)
-		throw std::runtime_error("400 Bad Request1");
+		throw std::runtime_error("400 Bad Request");
 	if (key == "HOST" && value.empty())
-		throw std::runtime_error("400 Bad Request2");
+		throw std::runtime_error("400 Bad Request");
 	if (key == "HOST" && data_.headers.find("HOST") != data_.headers.end())
-		throw std::runtime_error("400 Bad Request3");
+		throw std::runtime_error("400 Bad Request");
 
 }
 
