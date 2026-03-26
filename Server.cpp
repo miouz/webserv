@@ -67,7 +67,10 @@ Client* Server::acceptClient()
 		close(fd);
 		return NULL;
 	}
-	Client* newCLient = new (std::nothrow) Client(fd, *this, addr);
+	time_t now = std::time(NULL);
+	if (now == RETURN_ERROR)
+		return NULL;
+	Client* newCLient = new (std::nothrow) Client(fd, *this, addr, now);
 	clients_.push_back(newCLient);
 	#ifdef DEBUG
 	std::cout << "\nConnection established on fd " << sockFd_ << ":\n"
