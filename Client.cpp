@@ -44,9 +44,37 @@ std::string& Client::getBufferIn() { return bufferIn_;}
 std::string& Client::getBufferOut() { return bufferOut_;}
 
 time_t	Client::getLastActivityTime() const { return lastActivityTime_; }
+
 void Client::removeFromServer()
 {
 	server_.removeClient(this);
+}
+
+
+bool Client::isTimeOut()
+{
+	time_t now = std::time(NULL);
+	if (now == -1)
+	{
+		std::cerr<< "cant check client's time out, disconnecting client\n";
+		return true;
+	}
+	double elapsed = std::difftime(now, lastActivityTime_);
+	if (elapsed >= CLIENT_TIMEOUT_SECONDES)
+		return true;
+	return false;
+}
+
+
+void Client::updateLastActivityTime()
+{
+	time_t now = std::time(NULL);
+	if (now == -1)
+	{
+		std::cerr<< "cant check client's time out, disconnecting client\n";
+		return;
+	}
+	lastActivityTime_ = now;
 }
 
 Client* findClient(int fd, std::vector<Client*>& clients)

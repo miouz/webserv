@@ -54,6 +54,8 @@ class Client
 
 	void closeClient();
 	void removeFromServer();
+	bool isTimeOut();
+	void updateLastActivityTime();
 };
 
 std::ostream& operator<<(std::ostream& out, Client& client);
