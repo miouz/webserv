@@ -40,7 +40,7 @@ class RequestParser
 		~RequestParser();
 		void	feed(std::string&);
 		bool	isComplete() const;
-		ParsedData	getData() const;
+		const ParsedData&	getData() const;
 };
 
 void	capitalize(std::string&);

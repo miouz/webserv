@@ -163,7 +163,7 @@ bool	RequestParser::isComplete() const
 	return isBodyParsed_;
 }
 
-ParsedData	RequestParser::getData() const
+const ParsedData&	RequestParser::getData() const
 {
 	return data_;
 }
