@@ -63,7 +63,28 @@ int main()
 		}
 		if (status == 0)
 		{
-			//TODO: poll() timeout arrives, check if continue program, clients timeout and clean resources (next PR)
+			for (size_t i = 0; i < clients.size(); i++)
+			{
+				if (clients[i]->isTimeOut())
+				{
+					#ifdef DEBUG
+					std::cout << "\nClient on fd " << clients[i]->getFd() 
+									<< " is time out, disconnecting from server:\n";
+					#endif
+					int clientFd = clients[i]->getFd();
+					std::vector<pollfd>::iterator toRemove = fdPool.end();
+					for(size_t i = 0; i < fdPool.size(); i++)
+					{
+						if (clientFd == fdPool[i].fd)
+						{
+							toRemove = fdPool.begin() + i;
+							break ;
+						}	
+					}
+					disconnectClient(clientFd, clients, fdPool, toRemove);
+					i--;
+				}
+			}
 			continue;
 		}
 		for (size_t i = 0; i < fdPool.size(); i++)
