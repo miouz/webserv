@@ -106,10 +106,13 @@ int main()
 				if (fdPool[i].revents & POLLIN)
 				{
 					ssize_t bytesRead = read(client->getFd(), buff, READ_BUFF_SIZE);
-					#ifdef DEBUG
+
 					if(bytesRead > 0) 
-						std::cout << "\nClient on fd "<<client->getFd() <<  " recieved request:\n" << buff << "\n";
-					#endif
+					{
+						#ifdef DEBUG
+							std::cout << "\nClient on fd "<<client->getFd() <<  " recieved request:\n" << buff << "\n";
+						#endif
+					}
 				}
 				if (fdPool[i].revents & POLLOUT)
 				{
