@@ -1,4 +1,5 @@
 NAME := webserv
+TEST_NAME := run_tests
 
 # ============================================================================ #
 #                               COMPILOR & FLAGS                                  #
@@ -74,8 +75,8 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 #Test suit
 test-bin: $(TEST_SRCS)
-	@$(CXX) $(CXXFLAGS) $(TEST_SRCS) -o $(TEST_DIR)/run_tests
-	$(TEST_DIR)/run_tests
+	@$(CXX) $(CXXFLAGS) $(TEST_SRCS) -o $(TEST_DIR)/$(TEST_NAME)
+	$(TEST_DIR)/$(TEST_NAME)
 
 test:
 	@if [ ! -f $(TEST_SCRIPT) ]; then \
@@ -100,7 +101,7 @@ clean:
 	@printf '🧹$(GREEN)Cleaning .o files... m(｡≧ｴ≦｡)m$(RESET)🧹🧹\n'
 
 fclean: clean
-	@rm -f $(NAME)
+	@rm -f $(NAME) $(TEST_DIR)/$(TEST_NAME)
 	# rm -f $(NAME_BONUS)
 	@printf '🧹🧹$(GREEN)Nothing left...ლ(◉◞౪◟◉ )ლ$(RESET)🧹🧹\n'
 
