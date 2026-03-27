@@ -137,16 +137,17 @@ std::ostream& operator<<(std::ostream& out, Client& client)
 void	disconnectClient(int fd, std::vector<Client*>& clients,
 					  std::vector<pollfd>& fdPool, std::vector<pollfd>::iterator toRemove)
 {
-	fdPool.erase(toRemove);
+	if (toRemove != fdPool.end())
+		fdPool.erase(toRemove);
 	Client* client = findClient(fd, clients);
 	if (client)
 	{
 		std::vector<Client*>::iterator clientFound = std::find(clients.begin(),
 														 clients.end(), client);
 		clients.erase(clientFound);
-	}
 	#ifdef DEBUG
 	std::cout << "\nClient on fd " << client->getFd() << " is DISCONNECTED now\n";
 	#endif
 	client->removeFromServer();
+	}
 }
