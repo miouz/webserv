@@ -71,11 +71,14 @@ Client* Server::acceptClient()
 	if (now == RETURN_ERROR)
 		return NULL;
 	Client* newCLient = new (std::nothrow) Client(fd, *this, addr, now);
-	clients_.push_back(newCLient);
-	#ifdef DEBUG
-	std::cout << "\nConnection established on fd " << sockFd_ << ":\n"
-		<< *newCLient<<"\n";
-	#endif
+	if (newCLient)
+	{
+		clients_.push_back(newCLient);
+		#ifdef DEBUG
+		std::cout << "\nConnection established on fd " << sockFd_ << ":\n"
+			<< *newCLient<<"\n";
+		#endif
+	}	
 	return newCLient;
 }
 
