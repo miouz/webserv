@@ -108,10 +108,14 @@ void	RequestParser::setHeader(std::string& key, std::string& value)
 {
 	std::string	token;
 	std::istringstream	iss(value);
-	iss >> value;
+	
 	capitalize(key);
-	if (key == "HOST" && iss >> token)
-		throw std::runtime_error("400 Bad Request");
+	if (key == "HOST" || key == "CONTENT-LENGTH")
+	{
+		iss >> token;
+		if (iss >> token)
+			throw std::runtime_error("400 Bad Request");
+	}
 
 	#ifdef DEBUG
 		std::cout << "\n[" << key << ":" << value << "]\n";

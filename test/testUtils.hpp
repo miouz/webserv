@@ -37,7 +37,7 @@ extern int g_fail;
         } \
     } while (0)
 
-// Pour les tests qui attendent une exception
+// For tests waiting exception
 # define ASSERT_THROW(desc, expr) \
     do { \
         bool _threw = false; \
@@ -52,7 +52,7 @@ extern int g_fail;
         } \
     } while (0)
 
-// Pour les tests qui attendent que le parser rejette (isComplete() false ou exception)
+// For tests waiting rejection from the parser
 # define ASSERT_INVALID(desc, parser) \
     do { \
         if (!(parser).isComplete()) { \
