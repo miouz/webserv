@@ -64,15 +64,9 @@ void	RequestParser::parseHeaders()
 		}
 		std::size_t	found = line.find(sep);
 		if (found == std::string::npos)
-			value = "";
-		else
-			value = line.substr(found + sep.size());
+			continue ;
 		key = line.substr(0, found);
-
-		#ifdef DEBUG
-			std::cout << "\n[" << key << ":" << value << "]\n";
-		#endif
-
+		value = line.substr(found + sep.size());
 		setHeader(key, value);
 	}
 }
@@ -120,9 +114,14 @@ void	RequestParser::setHeader(std::string& key, std::string& value)
 	std::string	token;
 	std::istringstream	iss(value);
 	iss >> value;
-	if (iss >> token)
-		throw std::runtime_error("400 Bad Request");
 	capitalize(key);
+	if (key == "HOST" && iss >> token)
+		throw std::runtime_error("400 Bad Request");
+
+	#ifdef DEBUG
+		std::cout << "\n[" << key << ":" << value << "]\n";
+	#endif
+
 	checkHeaders(key, value);
 	data_.headers[key] = value;
 }
