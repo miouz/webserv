@@ -24,10 +24,7 @@ void	RequestParser::parseStartLine()
 
 	size_t	found = buffer_.find(EOL);
 	if (found == std::string::npos)
-	{
-		throw std::runtime_error("Out of scope: Time out");//WARNING: tmp: out of scope
 		return ;
-	}
 	std::istringstream	iss(buffer_.substr(0, found));
 	buffer_ = buffer_.substr(found + EOL.size());
 	data_.method = getToken(iss);
