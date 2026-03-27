@@ -49,12 +49,10 @@ void	RequestParser::parseHeaders()
 	std::string	key;
 	std::string	value;
 
-	if (isHeadersParsed_ == false && buffer_.find("\r\n\r\n") != std::string::npos)
-		isHeadersParsed_ = true;
 	#ifdef DEBUG
 		std::cout << "\n[key:value]\n";
 	#endif
-	while (1)
+	while (buffer_.find("\r\n") != std::string::npos)
 	{
 		std::string	line = getLine(buffer_);
 		if (line.empty())
