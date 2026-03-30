@@ -85,7 +85,7 @@ void	Server::unexpectedVariableEndException(std::string word, std::ifstream &fil
 {
 	(void) word;
 	(void) file;
-	throw std::runtime_error("unexpected end of file, expecting \";\"");
+	throw std::runtime_error("unexpected end of directive, expecting \";\"");
 }
 
 void	Server::unexpectedTokenException(std::string word, std::ifstream &file)

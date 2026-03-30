@@ -27,7 +27,7 @@ public :
 	std::map<std::string,std::string>	getCgiExtension();
 	std::map<int, std::string>			getErrorPage();
 	std::string							getCgiPass();
-	std::string							getClientMaxBodySize();
+	int									getClientMaxBodySize();
 	void								print();
 
 
@@ -59,7 +59,7 @@ private :
 	std::map<std::string,std::string>	cgi_extension;
 	std::map<int, std::string>			error_page;
 	std::string							cgi_pass;
-	std::string							client_max_body_size;
+	int									client_max_body_size;
 };
 
 	bool		isspace(char c);

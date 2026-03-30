@@ -24,6 +24,7 @@ public :
 	std::vector<std::string>	getIndex();
 	std::map<int, std::string>	getErrorPage();
 	int							getClientMaxBodySize();
+
 	void						print();
 
 private :

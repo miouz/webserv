@@ -33,6 +33,9 @@
 		servers.push_back(temp);
 		word = getnextword(file);
 	}
+	if (servers.size() == 0)
+			throw std::runtime_error("directive \"server\" missing");
+
 	file.close();
 }
 

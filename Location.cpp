@@ -88,11 +88,12 @@ void	Location::init()
     this->autoindex = false;
     this->upload_store = "";
     this->cgi_pass = "";
-    this->client_max_body_size = -1;
+    this->client_max_body_size = 1;
 	this->methods[0] = true;
 	this->methods[1] = false;
 	this->methods[2] = false;
 }
+
 void	Location::unexpectedEndException(std::string word, std::ifstream &file)
 {
 	(void) word;
@@ -104,7 +105,7 @@ void	Location::unexpectedVariableEndException(std::string word, std::ifstream &f
 {
 	(void) word;
 	(void) file;
-	throw std::runtime_error("unexpected end of file, expecting \";\"");
+	throw std::runtime_error("unexpected end of directive, expecting \";\"");
 }
 
 
@@ -121,6 +122,7 @@ void Location::setMethods(std::string w, std::ifstream &file)
 	(void) w;
 	word = getnextword(file);
 	checkIfWord(word, file);
+	this->methods[0] = false;
 	while (word != ";")
 	{
 		if (word == "")
@@ -180,7 +182,7 @@ void Location::setAutoIndex(std::string w, std::ifstream &file)
 	else if (word == "off")
 		this->autoindex = false;
 	else
-		throw std::runtime_error("\"methods\" directive invalid value");
+		throw std::runtime_error("\"auto_index\" directive invalid value");
 	word = getnextword(file);
 	if (word != ";")
 		this->unexpectedVariableEndException(word, file);
@@ -314,7 +316,7 @@ std::string							Location::getCgiPass()
 	return(this->cgi_pass);
 }
 
-std::string							Location::getClientMaxBodySize()
+int									Location::getClientMaxBodySize()
 {
 	return(this->client_max_body_size);
 }
