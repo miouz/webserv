@@ -5,6 +5,7 @@
 # include <vector>
 # include <fstream>
 # include <map>
+# include <cstdlib>
 
 class Location
 {

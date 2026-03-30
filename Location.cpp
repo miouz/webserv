@@ -321,7 +321,7 @@ std::string							Location::getClientMaxBodySize()
 
 void	Location::print()
 {
-	int												i;
+	long unsigned int								i;
 	std::map<int, std::string>::iterator			itint;
 	std::map<std::string, std::string>::iterator	itstr;
 

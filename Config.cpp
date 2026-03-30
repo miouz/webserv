@@ -10,13 +10,13 @@
 
 	Config::Config(Config &copy)
 {
+	(void) copy;
 }
 
 	Config::Config(const std::string toread)
 {
-	std::ifstream	file(toread);
+	std::ifstream	file(toread.c_str());
 	std::string 	word;
-	int				i;
 
 	if (file.is_open() == false)
 		throw std::runtime_error("Error opening file: " + toread);
@@ -42,6 +42,7 @@
 
 Config	&Config::operator=(Config const &copy)
 {
+	(void) copy;
 	return (*this);
 }
 
@@ -101,7 +102,7 @@ bool	endword(char c)
 
 void	Config::print()
 {
-	int	i;
+	long unsigned int	i;
 
 	i = 0;
 	while (i < servers.size())

@@ -194,6 +194,7 @@ bool	isReadableNumber(std::string word)
 
 void	checkIfWord(std::string word, std::ifstream &file)
 {
+	(void) file;
 	if (word == "")
 		throw std::runtime_error("unexpected end of file, expecting \"}\"");
 	if (istoken(word[0]) == true)
@@ -245,8 +246,8 @@ int							Server::getClientMaxBodySize()
 
 void	Server::print()
 {
-	int	i;
-	std::map<int, std::string>::iterator it;
+	long unsigned							i;
+	std::map<int, std::string>::iterator	it;
 
 	std::cout << "server_name : " << server_name << "\n";
 	std::cout << "listen : " << listen << "\n";
