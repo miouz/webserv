@@ -1,5 +1,5 @@
-#ifndef SERVER_HPP
-# define SERVER_HPP
+#ifndef SERVERCONFIG_HPP
+# define SERVERCONFIG_HPP
 
 # include <iostream>
 # include <vector>
@@ -7,15 +7,15 @@
 # include <map>
 # include <string>
 
-class Server
+class ServerConfig
 {
 
 public : 
 
-	Server(std::ifstream &file);
-	Server(const Server &copy);
-	Server &operator=(const Server &copy);
-	~Server( void );
+	ServerConfig(std::ifstream &file);
+	ServerConfig(const ServerConfig &copy);
+	ServerConfig &operator=(const ServerConfig &copy);
+	~ServerConfig( void );
 
 	std::vector<Location>		getLocations();
 	std::string					getListen();
@@ -29,7 +29,7 @@ public :
 
 private :
 
-	Server( void );
+	ServerConfig( void );
 
 	void	unexpectedEndException(std::string word, std::ifstream &file);
 	void	unexpectedVariableEndException(std::string word, std::ifstream &file);

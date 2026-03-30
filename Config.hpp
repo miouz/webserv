@@ -3,7 +3,8 @@
 
 # include <string>
 # include <vector>
-# include "Server.hpp"
+# include "ServerConfig.hpp"
+# include "Config.hpp"
 
 class Config
 {
@@ -12,7 +13,7 @@ public :
 
 	Config(const std::string toread);
 	~Config( void );
-	std::vector<Server>	getServers();
+	std::vector<ServerConfig>	getServers();
 	void	print();
 
 private : 
@@ -21,7 +22,7 @@ private :
 	Config(Config &copy);
 	Config &operator=(Config const &copy);
 
-	std::vector<Server> servers;
+	std::vector<ServerConfig> servers;
 };
 
 #endif

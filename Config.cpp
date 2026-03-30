@@ -29,7 +29,7 @@
 				throw std::runtime_error("unexpected \"" + word + "\"");
 			throw std::runtime_error("unknown directive \""+ word + "\"");
 		}
-		Server	temp(file);
+		ServerConfig	temp(file);
 		servers.push_back(temp);
 		word = getnextword(file);
 	}
@@ -117,7 +117,7 @@ void	Config::print()
 	}
 }
 
-std::vector<Server>	Config::getServers()
+std::vector<ServerConfig>	Config::getServers()
 {
 	return (this->servers);
 }

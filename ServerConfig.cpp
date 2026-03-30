@@ -1,13 +1,13 @@
-#include "Server.hpp"
+#include "ServerConfig.hpp"
 #include "Config.hpp"
 #include <iostream>
 #include <fstream>
 
-	Server::Server( void )
+	ServerConfig::ServerConfig( void )
 {
 }
 
-	Server::Server(const Server &copy)
+	ServerConfig::ServerConfig(const ServerConfig &copy)
 {
     this->locations = copy.locations;
     this->listen = copy.listen;
@@ -18,7 +18,7 @@
     this->client_max_body_size = copy.client_max_body_size;
 }
 
-Server	&Server::operator=(const Server &copy)
+ServerConfig	&ServerConfig::operator=(const ServerConfig &copy)
 {
     if (this == &copy)
         return (*this);
@@ -32,16 +32,16 @@ Server	&Server::operator=(const Server &copy)
 	return (*this);
 }
 
-	Server::~Server( void )
+	ServerConfig::~ServerConfig( void )
 {
 }
 
-	Server::Server(std::ifstream &file)
+	ServerConfig::ServerConfig(std::ifstream &file)
 {
 	std::string	word;
 	std::string words[10] = {"", "{", ";", "location", "server_name", "root", "index", "error_page", "client_max_body_size", "listen"};
-	void (Server::*fptr[10])(std::string word, std::ifstream &file) = {&Server::unexpectedEndException, &Server::unexpectedTokenException, &Server::unexpectedTokenException,
-			 &Server::setLocation, &Server::setName, &Server::setRoot, &Server::setIndex, &Server::setErrorPage, &Server::setCMBS, &Server::setListen};
+	void (ServerConfig::*fptr[10])(std::string word, std::ifstream &file) = {&ServerConfig::unexpectedEndException, &ServerConfig::unexpectedTokenException, &ServerConfig::unexpectedTokenException,
+			 &ServerConfig::setLocation, &ServerConfig::setName, &ServerConfig::setRoot, &ServerConfig::setIndex, &ServerConfig::setErrorPage, &ServerConfig::setCMBS, &ServerConfig::setListen};
 
 	this->init();
 	word = getnextword(file);
@@ -66,7 +66,7 @@ Server	&Server::operator=(const Server &copy)
 	}
 }
 
-void	Server::init()
+void	ServerConfig::init()
 {
     this->listen = "";
     this->server_name = "";
@@ -74,27 +74,27 @@ void	Server::init()
     this->client_max_body_size = -1;
 }
 
-void	Server::unexpectedEndException(std::string word, std::ifstream &file)
+void	ServerConfig::unexpectedEndException(std::string word, std::ifstream &file)
 {
 	(void) word;
 	(void) file;
 	throw std::runtime_error("unexpected end of file, expecting \"}\"");
 }
 
-void	Server::unexpectedVariableEndException(std::string word, std::ifstream &file)
+void	ServerConfig::unexpectedVariableEndException(std::string word, std::ifstream &file)
 {
 	(void) word;
 	(void) file;
 	throw std::runtime_error("unexpected end of directive, expecting \";\"");
 }
 
-void	Server::unexpectedTokenException(std::string word, std::ifstream &file)
+void	ServerConfig::unexpectedTokenException(std::string word, std::ifstream &file)
 {
 	(void) file;
 	throw std::runtime_error("unexpected \"" + word + "\"");
 }
 
-void	Server::setLocation(std::string word, std::ifstream &file)
+void	ServerConfig::setLocation(std::string word, std::ifstream &file)
 {
 		Location	temp(file);
 
@@ -102,7 +102,7 @@ void	Server::setLocation(std::string word, std::ifstream &file)
 		this->locations.push_back(temp);
 }
 
-void	Server::setName(std::string w, std::ifstream &file)
+void	ServerConfig::setName(std::string w, std::ifstream &file)
 {
 	std::string	word;
 
@@ -115,7 +115,7 @@ void	Server::setName(std::string w, std::ifstream &file)
 		this->unexpectedVariableEndException(word, file);
 }
 
-void	Server::setRoot(std::string w, std::ifstream &file)
+void	ServerConfig::setRoot(std::string w, std::ifstream &file)
 {
 	std::string	word;
 
@@ -128,7 +128,7 @@ void	Server::setRoot(std::string w, std::ifstream &file)
 		this->unexpectedVariableEndException(word, file);
 }
 
-void	Server::setIndex(std::string w, std::ifstream &file)
+void	ServerConfig::setIndex(std::string w, std::ifstream &file)
 {
 	std::string	word;
 
@@ -144,7 +144,7 @@ void	Server::setIndex(std::string w, std::ifstream &file)
 	}
 }
 
-void	Server::setErrorPage(std::string w, std::ifstream &file)
+void	ServerConfig::setErrorPage(std::string w, std::ifstream &file)
 {
 	std::string	word;
 	int			res;
@@ -163,7 +163,7 @@ void	Server::setErrorPage(std::string w, std::ifstream &file)
 		this->unexpectedVariableEndException(word, file);
 }
 
-void	Server::setCMBS(std::string w, std::ifstream &file)
+void	ServerConfig::setCMBS(std::string w, std::ifstream &file)
 {
 	std::string	word;
 
@@ -201,7 +201,7 @@ void	checkIfWord(std::string word, std::ifstream &file)
 		throw std::runtime_error("unexpected \"" + word + "\"");
 }
 
-void	Server::setListen(std::string w, std::ifstream &file)
+void	ServerConfig::setListen(std::string w, std::ifstream &file)
 {
 	std::string	word;
 
@@ -215,36 +215,36 @@ void	Server::setListen(std::string w, std::ifstream &file)
 }
 
 
-std::vector<Location>		Server::getLocations()
+std::vector<Location>		ServerConfig::getLocations()
 {
 	return (this->locations);
 }
-std::string					Server::getListen()
+std::string					ServerConfig::getListen()
 {
 	return (this->listen);
 }
-std::string					Server::getServerName()
+std::string					ServerConfig::getServerName()
 {
 	return (this->server_name);
 }
-std::string					Server::getRoot()
+std::string					ServerConfig::getRoot()
 {
 	return (this->root);
 }
-std::vector<std::string>	Server::getIndex()
+std::vector<std::string>	ServerConfig::getIndex()
 {
 	return (this->index);
 }
-std::map<int, std::string>	Server::getErrorPage()
+std::map<int, std::string>	ServerConfig::getErrorPage()
 {
 	return (this->error_page);
 }
-int							Server::getClientMaxBodySize()
+int							ServerConfig::getClientMaxBodySize()
 {
 	return (this->client_max_body_size);
 }
 
-void	Server::print()
+void	ServerConfig::print()
 {
 	long unsigned							i;
 	std::map<int, std::string>::iterator	it;
