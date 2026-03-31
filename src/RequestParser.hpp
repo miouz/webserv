@@ -12,6 +12,7 @@ struct ParsedData
 	std::string	protocol;
 	std::map<std::string, std::string>	headers;
 	std::string	body;
+	int	code;
 };
 
 class RequestParser
@@ -33,6 +34,7 @@ class RequestParser
 		void	setHeader(std::string&, std::string&);
 		void	checkHeaders(std::string&, std::string&);
 		void	checkStartLine();
+		void	endParsing(int);
 
 
 	public:

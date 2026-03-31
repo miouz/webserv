@@ -1,8 +1,12 @@
 #include "RequestParser.hpp"
 #include <cstdlib>
 #include <iostream>
+#include <errno.h>
 
-RequestParser::RequestParser(): buffer_(""), isStartParsed_(false), isHeadersParsed_(false), isBodyParsed_(false) {}
+RequestParser::RequestParser(): buffer_(""), isStartParsed_(false), isHeadersParsed_(false), isBodyParsed_(false)
+{
+	data_.code = 200;
+}
 
 RequestParser::~RequestParser() {}
 
@@ -49,7 +53,7 @@ void	RequestParser::parseHeaders()
 	#ifdef DEBUG
 		std::cout << "\n[key:value]\n";
 	#endif
-	while (buffer_.find("\r\n") != std::string::npos)
+	while (buffer_.find("\r\n") != std::string::npos && isComplete() == false)
 	{
 		std::string	line = getLine(buffer_);
 		if (line.empty())
@@ -71,8 +75,16 @@ void	RequestParser::parseBody()
 	std::map<std::string, std::string>::iterator contentLen = data_.headers.find("CONTENT-LENGTH");
 	if (contentLen != data_.headers.end())
 	{
-		size_t	totalSize = atoi(contentLen->second.c_str());
-		if (buffer_.size() < totalSize)
+		char	*endptr;
+		errno = 0;
+		
+		long	totalSize = std::strtol(contentLen->second.c_str(), &endptr, 10);
+		if (errno == ERANGE || (endptr && *endptr))
+		{
+			endParsing(400);
+			return ;
+		}
+		if (static_cast<long>(buffer_.size()) < totalSize)
 			return ;
 		data_.body = buffer_.substr(0, totalSize);
 
@@ -114,7 +126,10 @@ void	RequestParser::setHeader(std::string& key, std::string& value)
 	{
 		iss >> token;
 		if (iss >> token)
-			throw std::runtime_error("400 Bad Request");
+		{
+			endParsing(400);
+			return ;
+		}
 	}
 
 	#ifdef DEBUG
@@ -122,39 +137,56 @@ void	RequestParser::setHeader(std::string& key, std::string& value)
 	#endif
 
 	checkHeaders(key, value);
-	data_.headers[key] = value;
+	if (isComplete() == false)
+		data_.headers[key] = value;
 }
 
 void	RequestParser::checkStartLine()
 {
 	static const int	NBR_METHODS = 3;
+
+	if (data_.uri[0] != '/')
+	{
+		endParsing(400);
+		return ;
+	}
 	if (data_.protocol.empty())
 	{
-		isHeadersParsed_ = true;
 		if (data_.method != "GET")
-			throw std::runtime_error("400 Bad Request");
+		{
+			endParsing(400);
+			return ;
+		}
+		isHeadersParsed_ = true;
 	}
 	// if (data_.protocol != "HTTP/1.0")//WARNING: We have to discuss what can be accepted
 	// 	throw std::runtime_error("400 Bad Request");
-	if (data_.uri[0] != '/')
-		throw std::runtime_error("400 Bad Request");
-
 	std::string	methods[NBR_METHODS] = {"GET", "POST", "DELETE"};
 	for (int i = 0; i < NBR_METHODS; i++)
 		if (data_.method == methods[i])
 			return ;
-	throw std::runtime_error("400 Bad Request");
+	endParsing(400);
 }
 
 void	RequestParser::checkHeaders(std::string& key, std::string& value)
 {
 	if (key.find(" ") != std::string::npos)
-		throw std::runtime_error("400 Bad Request");
-	if (key == "HOST" && value.empty())
-		throw std::runtime_error("400 Bad Request");
-	if (key == "HOST" && data_.headers.find("HOST") != data_.headers.end())
-		throw std::runtime_error("400 Bad Request");
+		endParsing(400);
+	else if ((key == "HOST" || key == "CONTENT-LENGTH") && value.empty())
+		endParsing(400);
+	else if (key == "HOST" && data_.headers.find("HOST") != data_.headers.end())
+		endParsing(400);
+	else if (key == "CONTENT-LENGTH" && data_.headers.find("CONTENT-LENGTH") != data_.headers.end())
+		endParsing(400);
 
+}
+
+void	RequestParser::endParsing(int code)
+{
+	isStartParsed_ = true;
+	isHeadersParsed_ = true;
+	isBodyParsed_ = true;
+	data_.code = code;
 }
 
 bool	RequestParser::isComplete() const
@@ -170,6 +202,5 @@ const ParsedData&	RequestParser::getData() const
 void	capitalize(std::string& str)
 {
 	for (size_t i = 0; i < str.size(); i++)
-		if (std::islower(str[i]))
-			str[i] -= 'a' - 'A';
+		str[i] = toupper(str[i]);
 }
