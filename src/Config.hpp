@@ -4,7 +4,6 @@
 # include <string>
 # include <vector>
 # include "ServerConfig.hpp"
-# include "Config.hpp"
 
 class Config
 {
