@@ -1,0 +1,5 @@
+server {
+  location / { root /var/www/html; }
+  location /api { root /var/www/api; }
+  location /static { autoindex on; }
+}

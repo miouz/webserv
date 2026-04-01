@@ -1,0 +1,1 @@
+server { location /cgi { cgi_extension .py /usr/bin/python3; } }

@@ -1,0 +1,1 @@
+server { location / { foobar 42; } }

@@ -1,0 +1,1 @@
+server { location /old { return 301 /new; } }
