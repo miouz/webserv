@@ -49,7 +49,8 @@ Server::~Server()
  * @brief it creats client and add the client to clinets_ of the server
  *
  * @return address to the new added client who owned by server
- * @warning the ownership of client belongs to its server
+ * @warning the function throw exeption when new and vector operators fail ,
+ * the ownership of client belongs to its server
  */
 Client* Server::acceptClient()
 {
@@ -58,7 +59,7 @@ Client* Server::acceptClient()
 	int fd = accept(sockFd_, (struct sockaddr*)&addr, &len);
 	if (fd == RETURN_ERROR)
 	{
-		std::cerr << "Error: can't accept new client:" << std::strerror(errno) << "\n";
+		std::cerr << "Error: can't accept new client:" << std::strerror(errno) << ", continue\n";
 		return NULL;
 	}
 	if (fcntl(fd, F_SETFL, O_NONBLOCK) == RETURN_ERROR
@@ -70,15 +71,12 @@ Client* Server::acceptClient()
 	time_t now = std::time(NULL);
 	if (now == RETURN_ERROR)
 		return NULL;
-	Client* newCLient = new (std::nothrow) Client(fd, *this, addr, now);
-	if (newCLient)
-	{
-		clients_.push_back(newCLient);
-		#ifdef DEBUG
-		std::cout << "\nConnection established on fd " << sockFd_ << ":\n"
-			<< *newCLient<<"\n";
-		#endif
-	}	
+	Client* newCLient = new Client(fd, *this, addr, now);
+	clients_.push_back(newCLient);
+	#ifdef DEBUG
+	std::cout << "\nConnection established on fd " << sockFd_ << ":\n"
+		<< *newCLient<<"\n";
+	#endif
 	return newCLient;
 }
 

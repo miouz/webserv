@@ -13,6 +13,13 @@
 #include "Client.hpp"
 #include <netinet/in.h>
 
+typedef struct Data
+{
+	std::vector<Server*> servers;
+	std::vector<Client*> clients;
+	std::vector<pollfd> fdPool;
+}	Data;
+
 class Server
 {
 	int sockFd_;
@@ -43,4 +50,6 @@ std::ostream& operator<<(std::ostream& out, Server& server);
 Server* findServer(int fd, std::vector<Server*>& servers);
 pollfd fdToPollfdWithStatus(int fd, short event);
 void	shutDownServers(std::vector<Server*>& servers);
+void setUpServers(Data& data);
+void pollEventsLoop(Data& data);
 #endif // !SERVER_HPP
