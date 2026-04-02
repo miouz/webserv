@@ -1,17 +1,16 @@
-#include "../src/RequestParser.hpp"
 #include "testUtils.hpp"
 #include <iostream>
 
 int g_pass = 0;
 int g_fail = 0;
 
-void run_http_parser_tests(void);
+void	run_config_parser_tests(void);
 
 int main(void)
 {
-    run_http_parser_tests();
     // … run_routing_tests(), run_response_tests(), etc.
 
+	run_config_parser_tests();
     int total = g_pass + g_fail;
     std::cout << "\n" C_BOLD;
     if (g_fail == 0)
