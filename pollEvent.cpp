@@ -1,8 +1,12 @@
 #include "Client.hpp"
 #include "Server.hpp"
-#define READ_BUFF_SIZE 1024
-#define POLL_TIMEOUT 1000
 
+/**
+ * @brief it loops on each Client to check if is timeout, then try to disconnect them and free their resources
+ * @waning it catches each disconnect error locally in order to continue on next Client
+ *
+ * @param data the Data sturcture
+ */
 void cleanTimeOutClient(Data& data)
 {
 	for (size_t i = 0; i < data.clients.size(); i++)
@@ -69,6 +73,13 @@ void serverEventHandler(Data& data, pollfd& fd)
 	}
 }
 
+/**
+ * @brief this fundtion loop on the fdPool to handle events arrived on a particular pollfd
+ *
+ * @param data the Data structure
+ * @warning this function is nothrow, it catches error in his level and just continue
+ * so that all Servers continue to work
+ */
 void eventsHandler(Data& data)
 {
 	for (size_t i = 0; i < data.fdPool.size(); i++)
@@ -100,9 +111,17 @@ void eventsHandler(Data& data)
 	}
 }
 
+/**
+ * @brief the core poll() loop who watch the fdPool and handle event by evnet:
+ * if poll() syscall fails: EXIT program
+ * if poll() reach timeout: check Client timeout and clean them
+ * if poll() returns N means N fd got events, then loop on the fds to handle
+ *
+ * @param data the Data structure who contains active Servers Clients, and fdPool informations
+ * @warning this function EXIT and nothrow 
+*/
 void pollEventsLoop(Data& data)
 {
-	//poll the fds to get event
 	while (true) {
 		#ifdef DEBUG
 		std::cout << "\nfdPool to watch:";
@@ -113,7 +132,7 @@ void pollEventsLoop(Data& data)
 		int status = poll(data.fdPool.data(), data.fdPool.size(), POLL_TIMEOUT);
 		if (status < 0)
 		{
-			std::cerr << " poll error:" << strerror(errno) << "\n";
+			std::cerr << "Fatal Error: poll():" << strerror(errno) << ", exit\n";
 			shutDownServers(data.servers);
 			exit(EXIT_FAILURE);
 		}
