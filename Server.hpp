@@ -1,6 +1,9 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
+#define READ_BUFF_SIZE 1024
+#define POLL_TIMEOUT 1000
+
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
