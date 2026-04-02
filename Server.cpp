@@ -49,8 +49,7 @@ Server::~Server()
  * @brief it creats client and add the client to clinets_ of the server
  *
  * @return address to the new added client who owned by server
- * @warning the function throw exeption when new and vector operators fail ,
- * the ownership of client belongs to its server
+ * @warning the function throw exeptions, the ownership of client belongs to its server
  */
 Client* Server::acceptClient()
 {
@@ -58,19 +57,16 @@ Client* Server::acceptClient()
 	socklen_t len = sizeof(addr);
 	int fd = accept(sockFd_, (struct sockaddr*)&addr, &len);
 	if (fd == RETURN_ERROR)
-	{
-		std::cerr << "Error: can't accept new client:" << std::strerror(errno) << ", continue\n";
-		return NULL;
-	}
+		throw std::runtime_error(std::string("can't accept new client: ") + std::strerror(errno));
 	if (fcntl(fd, F_SETFL, O_NONBLOCK) == RETURN_ERROR
 		|| fcntl(fd, F_SETFD, FD_CLOEXEC) == RETURN_ERROR)
 	{
 		close(fd);
-		return NULL;
+		throw std::runtime_error(std::string("can't set up fd: ") + std::strerror(errno));
 	}
 	time_t now = std::time(NULL);
 	if (now == RETURN_ERROR)
-		return NULL;
+		throw std::runtime_error(std::string("can't set time: ") + std::strerror(errno));
 	Client* newCLient = new Client(fd, *this, addr, now);
 	clients_.push_back(newCLient);
 	#ifdef DEBUG
@@ -118,9 +114,9 @@ void Server::setUpServer(void)
 	std::cout << *this;
 }
 
-
 /**
  * @brief this function removes a client from the server's clients_ list,
+ * it finds the client with its ADDRESS (not fd because the fd could be assigned to a new Client already)
  * it calls the client's destructor by using delete and clients_.erase()
  *
  * @param client reference of the client to remove
@@ -131,7 +127,7 @@ void Server::removeClient(Client* client)
 		return ;
 	for (size_t i = 0; i < clients_.size(); i++)
 	{
-		if (client->getFd() == clients_[i]->getFd())
+		if (client == clients_[i])
 		{
 			delete clients_[i];
 			clients_.erase(clients_.begin() + i);
@@ -167,9 +163,3 @@ pollfd fdToPollfdWithStatus(int fd, short event)
 	return fdToReturn;
 }
 
-void	shutDownServers(std::vector<Server*>& servers)
-{
-	for (size_t i = 0; i < servers.size(); i++)
-		delete servers[i];
-	servers.clear();
-}

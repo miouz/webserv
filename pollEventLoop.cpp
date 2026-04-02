@@ -1,5 +1,4 @@
-#include "Client.hpp"
-#include "Server.hpp"
+#include "core.hpp"
 
 /**
  * @brief it loops on each Client to check if is timeout, then try to disconnect them and free their resources
