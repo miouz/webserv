@@ -1,0 +1,1 @@
+server { location /upload { upload_store /tmp/uploads; } }
