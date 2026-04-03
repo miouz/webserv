@@ -13,6 +13,7 @@
 #include <poll.h>
 #include "Client.hpp"
 #include <netinet/in.h>
+#include <vector>
 
 
 class Server

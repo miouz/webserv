@@ -12,6 +12,7 @@
 #include <arpa/inet.h>
 #include <poll.h>
 #include <ctime>
+#include <vector>
 
 #define RETURN_ERROR -1
 #define CLIENT_TIMEOUT_SECONDES 30
