@@ -1,0 +1,1 @@
+server { error_page 404 /errors/404.html; }
