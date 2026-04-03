@@ -1,5 +1,5 @@
-#ifndef CORE_HPP 
-#define CORE_HPP
+#ifndef WEBSERV_HPP 
+#define WEBSERV_HPP
 
 #define READ_BUFF_SIZE 1024
 #define POLL_TIMEOUT 1000
@@ -22,4 +22,4 @@ void	setUpServers(Data& data);
 void	pollEventsLoop(Data& data);
 void	shutDownServers(std::vector<Server*>& servers);
 
-#endif // !CORE_HPP
+#endif // !WEBSERV_HPP
