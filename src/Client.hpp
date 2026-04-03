@@ -2,6 +2,7 @@
 #define CLIENT_HPP
 
 #include <cerrno>
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
