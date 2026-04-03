@@ -9,12 +9,15 @@
  */
 void setUpServers(Data& data)
 {
-	for (int i = 0; i < SERVER_NUM; i++)
+	//TODO: change this part by transforming ServerConfig class to Server by calling Server's constructor
+	data.servers.emplace_back(new Server(-1, 8080));
+	data.servers.emplace_back(new Server(-1, 6060));
+	data.servers.emplace_back(new Server(-1, 5050));
+	data.servers.emplace_back(new Server(-1, 4040));
+	data.servers.emplace_back(new Server(-1, 3030));
+	for (size_t i = 0; i < data.servers.size(); i++)
 	{
 		try {
-		//TODO: change this part by transforming ServerConfig class to Server by calling Server's constructor
-		data.servers.push_back(NULL);
-		data.servers[i] = new Server(-1, 8080);
 		data.servers[i]->setUpServer();
 		pollfd serverFd = fdToPollfdWithStatus(data.servers[i]->getSockFd(), POLLIN);
 		data.fdPool.push_back(serverFd);
