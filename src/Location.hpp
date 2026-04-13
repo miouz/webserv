@@ -31,7 +31,6 @@ public :
 	void								print();
 
 
-
 private :
 
 	Location( void );
@@ -48,6 +47,7 @@ private :
 	void	setCGIP(std::string w, std::ifstream &file);
 	void	setCMBS(std::string w, std::ifstream &file);
 	void	init();
+	void	checkComplete();
 	
 	std::string							path;
 	bool								methods[3];

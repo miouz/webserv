@@ -78,16 +78,22 @@ Location	&Location::operator=(const Location &copy)
 			throw std::runtime_error("unknown directive \""+ word + "\"");
 		word = getnextword(file);
 	}
+	this->checkComplete();
+}
+
+void	Location::checkComplete()
+{
+	if (this->client_max_body_size == -1)
+		throw std::runtime_error("client_max_body_size directive unused");
 }
 
 void	Location::init()
 {
-    this->path = "";
     this->root = "";
     this->autoindex = false;
     this->upload_store = "";
     this->cgi_pass = "";
-    this->client_max_body_size = 1;
+    this->client_max_body_size = -1;
 	this->methods[0] = true;
 	this->methods[1] = false;
 	this->methods[2] = false;
