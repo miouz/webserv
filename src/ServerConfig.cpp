@@ -31,9 +31,9 @@ ServerConfig	&ServerConfig::operator=(const ServerConfig &copy)
 	ServerConfig::ServerConfig(std::ifstream &file)
 {
 	std::string	word;
-	std::string words[6] = {"", "{", ";", "location", "error_page", "listen"};
-	void (ServerConfig::*fptr[6])(std::string word, std::ifstream &file) = {&ServerConfig::unexpectedEndException, &ServerConfig::unexpectedTokenException, &ServerConfig::unexpectedTokenException,
-			 &ServerConfig::setLocation, &ServerConfig::setErrorPage, &ServerConfig::setListen};
+	std::string words[7] = {"", "{", ";", "location", "error_page", "listen", "client_max_body_size"};
+	void (ServerConfig::*fptr[7])(std::string word, std::ifstream &file) = {&ServerConfig::unexpectedEndException, &ServerConfig::unexpectedTokenException, &ServerConfig::unexpectedTokenException,
+			 &ServerConfig::setLocation, &ServerConfig::setErrorPage, &ServerConfig::setListen, &ServerConfig::setCMBS};
 
 	this->init();
 	word = getnextword(file);
@@ -43,16 +43,16 @@ ServerConfig	&ServerConfig::operator=(const ServerConfig &copy)
 	while (word != "}")
 	{
 		int i = 0;
-		while (i < 6)
+		while (i < 7)
 		{
 			if (word == words[i])
 			{
 				(this->*fptr[i])(word, file);
-				i = 6;
+				i = 7;
 			}
 			i++;
 		}
-		if (i == 6)
+		if (i == 7)
 			throw std::runtime_error("unknown directive \""+ word + "\"");
 		word = getnextword(file);
 	}
@@ -119,6 +119,21 @@ void	ServerConfig::setErrorPage(std::string w, std::ifstream &file)
 	word = getnextword(file);
 	checkIfWord(word, file);
 	this->error_page[res] = word;
+	word = getnextword(file);
+	if (word != ";")
+		this->unexpectedVariableEndException(word, file);
+}
+
+void	ServerConfig::setCMBS(std::string w, std::ifstream &file)
+{
+	std::string	word;
+
+	(void) w;
+	word = getnextword(file);
+	checkIfWord(word, file);
+	if (isReadableNumber(word) == false)
+		throw std::runtime_error("\"client_max_body_size\" directive invalid value");
+	this->client_max_body_size = atoi(word.c_str());
 	word = getnextword(file);
 	if (word != ";")
 		this->unexpectedVariableEndException(word, file);
