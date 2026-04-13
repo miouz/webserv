@@ -14,9 +14,6 @@
     this->_return = copy._return;
     this->upload_store = copy.upload_store;
     this->cgi_extension = copy.cgi_extension;
-    this->error_page = copy.error_page;
-    this->cgi_pass = copy.cgi_pass;
-    this->client_max_body_size = copy.client_max_body_size;
     this->index = copy.index;
     for (int i = 0; i < 3; i++)
         this->methods[i] = copy.methods[i];
@@ -33,9 +30,6 @@ Location	&Location::operator=(const Location &copy)
     this->_return = copy._return;
     this->upload_store = copy.upload_store;
     this->cgi_extension = copy.cgi_extension;
-    this->error_page = copy.error_page;
-    this->cgi_pass = copy.cgi_pass;
-    this->client_max_body_size = copy.client_max_body_size;
     this->index = copy.index;
     for (int i = 0; i < 3; i++)
         this->methods[i] = copy.methods[i];
@@ -49,10 +43,10 @@ Location	&Location::operator=(const Location &copy)
 	Location::Location(std::ifstream &file)
 {
 	std::string	word;
-	std::string words[12] = {"", "{", ";", "methods", "root", "index", "autoindex", "return", "upload_store", "cgi_extension", "cgi_path", "client_max_body_size"};
-	void (Location::*fptr[12])(std::string, std::ifstream&) = {&Location::unexpectedEndException, &Location::unexpectedTokenException, &Location::unexpectedTokenException,
+	std::string words[10] = {"", "{", ";", "methods", "root", "index", "autoindex", "return", "upload_store", "cgi_extension"};
+	void (Location::*fptr[10])(std::string, std::ifstream&) = {&Location::unexpectedEndException, &Location::unexpectedTokenException, &Location::unexpectedTokenException,
 			 &Location::setMethods, &Location::setRoot, &Location::setIndex, &Location::setAutoIndex, &Location::setReturn,
-			 	&Location::setUS, &Location::setCGIE, &Location::setCGIP, &Location::setCMBS};
+			 	&Location::setUS, &Location::setCGIE};
 	
 	this->init();
 	word = getnextword(file);
@@ -65,16 +59,16 @@ Location	&Location::operator=(const Location &copy)
 	while (word != "}")
 	{
 		int i = 0;
-		while (i < 13)
+		while (i < 10)
 		{
 			if (word == words[i])
 			{
 				(this->*fptr[i])(word, file);
-				i = 13;
+				i = 10;
 			}
 			i++;
 		}
-		if (i == 13)
+		if (i == 10)
 			throw std::runtime_error("unknown directive \""+ word + "\"");
 		word = getnextword(file);
 	}
@@ -83,8 +77,6 @@ Location	&Location::operator=(const Location &copy)
 
 void	Location::checkComplete()
 {
-	if (this->client_max_body_size == -1)
-		throw std::runtime_error("client_max_body_size directive unused");
 	if (this->root == "")
 		throw std::runtime_error("root directive unused");
 	if (this->index.size() == 0)
@@ -95,10 +87,6 @@ void	Location::checkComplete()
 		throw std::runtime_error("upload_store directive unused");
 	if (this->cgi_extension.size() == 0)
 		throw std::runtime_error("cgi_extension directive unused");
-	if (this->error_page.size() == 0)
-		throw std::runtime_error("error_page directive unused");
-	if (this->cgi_pass == "")
-		throw std::runtime_error("cgi_pass directive unused");
 }
 
 void	Location::init()
@@ -106,8 +94,6 @@ void	Location::init()
     this->root = "";
     this->autoindex = false;
     this->upload_store = "";
-    this->cgi_pass = "";
-    this->client_max_body_size = -1;
 	this->methods[0] = true;
 	this->methods[1] = false;
 	this->methods[2] = false;
@@ -221,7 +207,8 @@ void Location::setReturn(std::string w, std::ifstream &file)
 	res = atoi(word.c_str());
 	word = getnextword(file);
 	checkIfWord(word, file);
-	this->error_page.insert(std::make_pair(res, word));
+	this->_return.first = res;
+	this->_return.second = word;
 	word = getnextword(file);
 	if (word != ";")
 		this->unexpectedVariableEndException(word, file);
@@ -256,35 +243,6 @@ void Location::setCGIE(std::string w, std::ifstream &file)
 	if (word != ";")
 		this->unexpectedVariableEndException(word, file);
 }
-				
-void Location::setCGIP(std::string w, std::ifstream &file)
-{
-	std::string	word;
-
-	(void) w;
-	word = getnextword(file);
-	checkIfWord(word, file);
-	this->cgi_pass = word;
-	word = getnextword(file);
-	if (word != ";")
-		this->unexpectedVariableEndException(word, file);
-}
-
-void	Location::setCMBS(std::string w, std::ifstream &file)
-{
-	std::string	word;
-
-	(void) w;
-	word = getnextword(file);
-	checkIfWord(word, file);
-	if (isReadableNumber(word) == false)
-		throw std::runtime_error("\"client_max_body_size\" directive invalid value");
-	this->client_max_body_size = atoi(word.c_str());
-	word = getnextword(file);
-	if (word != ";")
-		this->unexpectedVariableEndException(word, file);
-}
-
 
 std::string							Location::getPath()
 {
@@ -326,25 +284,9 @@ std::map<std::string,std::string>	Location::getCgiExtension()
 	return(this->cgi_extension);
 }
 
-std::map<int, std::string>			Location::getErrorPage()
-{
-	return(this->error_page);
-}
-
-std::string							Location::getCgiPass()
-{
-	return(this->cgi_pass);
-}
-
-int									Location::getClientMaxBodySize()
-{
-	return(this->client_max_body_size);
-}
-
 void	Location::print()
 {
 	long unsigned int								i;
-	std::map<int, std::string>::iterator			itint;
 	std::map<std::string, std::string>::iterator	itstr;
 
 
@@ -361,15 +303,6 @@ void	Location::print()
 	std::cout << "autoindex : " << autoindex << "\n";
 	std::cout << "return : " << _return.first << " " <<  _return.second << "\n";
 	std::cout << "upload_store : " << upload_store << "\n";
-	itint = error_page.begin();
-	std::cout << "error pages " << " : " << "\n";
-	while (itint != error_page.end())
-	{
-   		std::cout << itint->first << " " << itint->second << "\n";
-		itint++;
-	}
-	std::cout << "client_max_body_size : " << client_max_body_size << "\n";
-	std::cout << "cgi_pass : " << cgi_pass << "\n";
 	itstr = cgi_extension.begin();
 	std::cout << "cgi extensions " << " : " << "\n";
 	while (itstr != cgi_extension.end())

@@ -19,9 +19,8 @@ public :
 
 	std::vector<Location>		getLocations();
 	int							getListen();
-	std::string					getRoot();
-	std::vector<std::string>	getIndex();
 	std::map<int, std::string>	getErrorPage();
+	int							getClientMaxBodySize();
 
 	void						print();
 
@@ -33,19 +32,16 @@ private :
 	void	unexpectedVariableEndException(std::string word, std::ifstream &file);
 	void	unexpectedTokenException(std::string word, std::ifstream &file);
 	void	setLocation(std::string word, std::ifstream &file);
-	void	setRoot(std::string w, std::ifstream &file);
-	void	setIndex(std::string w, std::ifstream &file);
 	void	setErrorPage(std::string w, std::ifstream &file);
 	void	setListen(std::string w, std::ifstream &file);
+	void	setCMBS(std::string w, std::ifstream &file);
 	void	init();
 	void	checkComplete();
 
 	std::vector<Location>		locations;
 	int							listen;
-	std::string					root;
-	std::vector<std::string>	index;
 	std::map<int, std::string>	error_page;
-
+	int							client_max_body_size;
 };
 
 bool	isReadableNumber(std::string word);

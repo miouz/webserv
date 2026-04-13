@@ -25,9 +25,6 @@ public :
 	std::pair<int,std::string>			getReturn();
 	std::string							getUploadStore();
 	std::map<std::string,std::string>	getCgiExtension();
-	std::map<int, std::string>			getErrorPage();
-	std::string							getCgiPass();
-	int									getClientMaxBodySize();
 	void								print();
 
 
@@ -44,8 +41,6 @@ private :
 	void	setReturn(std::string w, std::ifstream &file);
 	void	setUS(std::string w, std::ifstream &file);
 	void	setCGIE(std::string w, std::ifstream &file);
-	void	setCGIP(std::string w, std::ifstream &file);
-	void	setCMBS(std::string w, std::ifstream &file);
 	void	init();
 	void	checkComplete();
 	
@@ -57,9 +52,6 @@ private :
 	std::pair<int,std::string>			_return;
 	std::string							upload_store;
 	std::map<std::string,std::string>	cgi_extension;
-	std::map<int, std::string>			error_page;
-	std::string							cgi_pass;
-	int									client_max_body_size;
 };
 
 	bool		isspace(char c);
