@@ -85,6 +85,20 @@ void	Location::checkComplete()
 {
 	if (this->client_max_body_size == -1)
 		throw std::runtime_error("client_max_body_size directive unused");
+	if (this->root == "")
+		throw std::runtime_error("root directive unused");
+	if (this->index.size() == 0)
+		throw std::runtime_error("index directive unused");
+	if (this->_return.first == -1)
+		throw std::runtime_error("return directive unused");
+	if (this->upload_store == "")
+		throw std::runtime_error("upload_store directive unused");
+	if (this->cgi_extension.size() == 0)
+		throw std::runtime_error("cgi_extension directive unused");
+	if (this->error_page.size() == 0)
+		throw std::runtime_error("error_page directive unused");
+	if (this->cgi_pass == "")
+		throw std::runtime_error("cgi_pass directive unused");
 }
 
 void	Location::init()
@@ -97,6 +111,7 @@ void	Location::init()
 	this->methods[0] = true;
 	this->methods[1] = false;
 	this->methods[2] = false;
+	this->_return.first = -1;
 }
 
 void	Location::unexpectedEndException(std::string word, std::ifstream &file)

@@ -69,6 +69,12 @@ void	ServerConfig::checkComplete()
 		throw std::runtime_error("listen directive unused");
 	if (this->root == "")
 		throw std::runtime_error("root directive unused");
+	if (this->index.size() == 0)
+		throw std::runtime_error("index directive unused");
+	if (this->locations.size() == 0)
+		throw std::runtime_error("location directive unused");
+	if (this->error_page.size() == 0)
+		throw std::runtime_error("error_page directive unused");
 }
 
 void	ServerConfig::init()
