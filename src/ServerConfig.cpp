@@ -11,6 +11,7 @@
 {
     this->locations = copy.locations;
     this->listen = copy.listen;
+    this->client_max_body_size = copy.client_max_body_size;
     this->error_page = copy.error_page;
 }
 
@@ -20,6 +21,7 @@ ServerConfig	&ServerConfig::operator=(const ServerConfig &copy)
         return (*this);
     this->locations = copy.locations;
     this->listen = copy.listen;
+    this->client_max_body_size = copy.client_max_body_size;
     this->error_page = copy.error_page;
 	return (*this);
 }
