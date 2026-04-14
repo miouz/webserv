@@ -1,5 +1,31 @@
-server {
-  location / { root /var/www/html; }
-  location /api { root /var/www/api; }
-  location /static { autoindex on; }
+server
+{
+    listen 1;
+    error_page 404 error/error404;
+    client_max_body_size 40000;
+    location /
+    {
+        root /var/www/html;
+        return 1 error/return;
+        upload_store upload;
+        index index.html index.htm default.html;
+		cgi_extension .py cgi/py;
+    }
+    location /api
+    {
+        root /var/www/api;
+        return 1 error/return;
+        upload_store upload;
+        index index.html index.htm default.html;
+		cgi_extension .py cgi/py;
+    }
+    location /static
+    {
+        root /var/www/html;
+        return 1 error/return;
+        upload_store upload;
+        index index.html index.htm default.html;
+		autoindex on;
+		cgi_extension .py cgi/py;
+    }
 }
