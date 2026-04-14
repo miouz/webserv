@@ -20,7 +20,6 @@
 class Server
 {
 	int						sockFd_;
-	int						port_;
 	sockaddr_in				address_;
 	std::vector<Client*>	clients_;
 	ServerConfig			config_;
@@ -41,10 +40,7 @@ class Server
 
 	//wraper ServerConfig
 	std::vector<Location>		getLocations();
-	std::string					getListen();
-	std::string					getServerName();
-	std::string					getRoot();
-	std::vector<std::string>	getIndex();
+	int							getListen();
 	std::map<int, std::string>	getErrorPage();
 	int							getClientMaxBodySize();
 

@@ -2,7 +2,6 @@
 
 Server::Server(ServerConfig& config): sockFd_(-1), config_(config)
 {
-	port_ = std::atoi(config.getListen().c_str());
 	clients_.reserve(1024);
 }
 
@@ -10,25 +9,15 @@ void Server::setSockFd(int fd){ sockFd_ = fd;}
 
 std::vector<Client*>& Server::getClients(){return clients_;} 
 
-void Server::setPort(int port){ port_ = port;}
-
 int Server::getSockFd() const { return sockFd_;}
 
 struct sockaddr_in& Server::getAddress() { return address_; }
-
-int Server::getPort() const { return port_; }
 
 ServerConfig Server::getServerConfig() const { return config_;}
 
 std::vector<Location>	Server::getLocations() { return config_.getLocations();}
 
-std::string	Server::getListen() { return config_.getListen();}
-
-std::string	Server::getServerName() {return config_.getServerName();}
-
-std::string	Server::getRoot() {return config_.getRoot();}
-
-std::vector<std::string>	Server::getIndex() {return config_.getIndex();}
+int Server::getListen() { return config_.getListen();}
 
 std::map<int, std::string>	Server::getErrorPage() {return config_.getErrorPage();}
 
@@ -105,7 +94,7 @@ Client* Server::acceptClient()
 void Server::setUpServer(void)
 {
 	#ifdef DEBUG
-	std::cout << "Setting up server on port " << port_ << "\n";
+	std::cout << "Setting up server on port " << config_.getListen() << "\n";
 	#endif
 	int yes = 1;
 	sockFd_ = socket(PF_INET, SOCK_STREAM, 0);
@@ -121,7 +110,7 @@ void Server::setUpServer(void)
 
 	address_.sin_family = AF_INET;
 	address_.sin_addr.s_addr = INADDR_ANY;
-	address_.sin_port = htons(port_);
+	address_.sin_port = htons(config_.getListen());
 	if (bind(sockFd_, (struct sockaddr*)&address_, sizeof(address_)) == RETURN_ERROR)
 		throw std::runtime_error(std::string("bind: ") + strerror(errno));
 
@@ -156,7 +145,7 @@ void Server::removeClient(Client* client)
 std::ostream& operator<<(std::ostream& out, Server& server)
 {
 	out << "\nServer on fd " << server.getSockFd()
-		<< ", listening on port " << server.getPort()
+		<< ", listening on port " << server.getListen()
 		<< ", connected to " << server.getClients().size() << " clients\n";
 	return out;
 }
