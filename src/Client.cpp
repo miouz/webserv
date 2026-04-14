@@ -27,7 +27,7 @@ Client::~Client()
 }
 
 Client::Client(const Client& other): fd_(other.fd_), server_(other.server_), address_(other.address_),
-	bufferIn_(other.bufferIn_), bufferOut_(other.bufferOut_), status_(other.status_), lastActivityTime_(other.lastActivityTime_){ }
+	 bufferOut_(other.bufferOut_), status_(other.status_), lastActivityTime_(other.lastActivityTime_){ }
 
 int Client::getFd() const {return fd_;}
 
@@ -39,17 +39,16 @@ Server& Client::getServer() const { return server_;}
 
 void Client::setStatus(clientStatus status) { status_ = status;}
 
-std::string& Client::getBufferIn() { return bufferIn_;}
-
 std::string& Client::getBufferOut() { return bufferOut_;}
 
 time_t	Client::getLastActivityTime() const { return lastActivityTime_; }
+
+RequestParser& Client::getRequest() { return request_; }
 
 void Client::removeFromServer()
 {
 	server_.removeClient(this);
 }
-
 
 /**
  * @brief this function check if the client hits a timeout(CLIENT_TIMEOUT_SECONDES) sinc lastActivityTime_
@@ -94,7 +93,6 @@ Client* findClient(int fd, std::vector<Client*>& clients)
 	}
 	return NULL;
 }
-
 
 std::ostream& operator<<(std::ostream& out, Client& client)
 {

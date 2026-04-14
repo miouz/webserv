@@ -1,8 +1,10 @@
 #include "Server.hpp"
 
-Server::Server(): sockFd_(-1), port_(-1){clients_.reserve(1024);}
-
-Server::Server(int fd, int port): sockFd_(fd), port_(port){clients_.reserve(1024);}
+Server::Server(ServerConfig& config): sockFd_(-1), config_(config)
+{
+	port_ = std::atoi(config.getListen().c_str());
+	clients_.reserve(1024);
+}
 
 void Server::setSockFd(int fd){ sockFd_ = fd;}
 
@@ -15,6 +17,22 @@ int Server::getSockFd() const { return sockFd_;}
 struct sockaddr_in& Server::getAddress() { return address_; }
 
 int Server::getPort() const { return port_; }
+
+ServerConfig Server::getServerConfig() const { return config_;}
+
+std::vector<Location>	Server::getLocations() { return config_.getLocations();}
+
+std::string	Server::getListen() { return config_.getListen();}
+
+std::string	Server::getServerName() {return config_.getServerName();}
+
+std::string	Server::getRoot() {return config_.getRoot();}
+
+std::vector<std::string>	Server::getIndex() {return config_.getIndex();}
+
+std::map<int, std::string>	Server::getErrorPage() {return config_.getErrorPage();}
+
+int	Server::getClientMaxBodySize() {return config_.getClientMaxBodySize();}
 
 /**
  * @brief this function closes server's fd 

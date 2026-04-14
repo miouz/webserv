@@ -36,31 +36,56 @@ void cleanTimeOutClient(Data& data)
 	}
 }
 
-void clientEventHandler(Data& data, pollfd& fd, Client* client)
+/**
+ * @brief handle client's POLLIN POLLHUP events
+ * for POLLIN: bytesRead = 0 means client disconnected , need to clean up resources
+ * bytesRead < 0 not error because of the non blocking modle
+ *
+ * @param data Data structur of program
+ * @param fd fdPool of program
+ * @param client pointer contains address of Client
+ * @return return HandlerResult: HANDLER_OK or HANDLER_DISCONNECT
+ */
+HandlerResult clientEventHandler(Data& data, pollfd& fd, Client* client)
 {
 	(void)data;
-	char buff[READ_BUFF_SIZE] = {0};
 
 	if (fd.revents & POLLIN)
 	{
-		ssize_t bytesRead = read(client->getFd(), buff, READ_BUFF_SIZE);
+		char buff[READ_BUFF_SIZE] = {0};
+		ssize_t bytesRead = recv(client->getFd(), buff, READ_BUFF_SIZE, 0);
 
-		if(bytesRead > 0) 
+		if (bytesRead == 0)
+			return HANDLER_DISCONNECT;
+		if (bytesRead > 0)
 		{
+			if (!client->getRequest().isComplete())
+			{
+				std::string toFeed(buff, bytesRead);
+				client->getRequest().feed(toFeed);
+				client->updateLastActivityTime();
+			}
+			else {
+				//TODO: reply to request
+				//client->buildResponse();
+			}
 			#ifdef DEBUG
 				std::cout << "\nClient on fd "<<client->getFd() <<  " recieved request:\n" << buff << "\n";
 			#endif
 		}
 	}
-	if (fd.revents & POLLOUT)
+	else if (fd.revents & POLLOUT)
 	{
+		//TODO: send response to request
+		//client->sendResponse();		
 		#ifdef DEBUG
-		std::cout << "ready to send response\n";
+		std::cout << "response sent\n";
 		#endif
 	}
+	return HANDLER_OK;
 }
 
-void serverEventHandler(Data& data, pollfd& fd)
+HandlerResult serverEventHandler(Data& data, pollfd& fd)
 {
 	Server* server = findServer(fd.fd, data.servers);
 	if (server)
@@ -69,7 +94,9 @@ void serverEventHandler(Data& data, pollfd& fd)
 		data.clients.push_back(client);
 		pollfd clientFd = fdToPollfdWithStatus(client->getFd(), POLLIN);
 		data.fdPool.push_back(clientFd);
+		return HANDLER_OK;
 	}
+	return HANDLER_DISCONNECT;
 }
 
 /**
@@ -86,26 +113,32 @@ void eventsHandler(Data& data)
 		if (!data.fdPool[i].revents)
 			continue ;
 
-		if (data.fdPool[i].revents & (POLLHUP | POLLERR))
-		{
-			try{
-			disconnectClient(data.fdPool[i].fd, data.clients, data.fdPool, data.fdPool.begin() + i);
-			i--;
-	  		}catch(std::exception& e) {
-	  			std::cerr<<"Error: cant disconnect client: "<< e.what()<<", continue\n";
-			}
-			continue;
-		}
-		Client *client = findClient(data.fdPool[i].fd, data.clients);
 		try {
-			//if is client
+			Client *client = findClient(data.fdPool[i].fd, data.clients);
+			
 			if (client)
-				clientEventHandler(data, data.fdPool[i], client);
-			//if is server
+			{
+				if (data.fdPool[i].revents & (POLLHUP | POLLERR)
+					|| clientEventHandler(data, data.fdPool[i], client) == HANDLER_DISCONNECT)
+				{
+					disconnectClient(data.fdPool[i].fd, data.clients, data.fdPool, data.fdPool.begin() + i);
+					i--;
+					continue;
+				}
+			}
 			else
-				serverEventHandler(data, data.fdPool[i]);
+			{
+				if (data.fdPool[i].revents & (POLLHUP | POLLERR)
+					|| serverEventHandler(data, data.fdPool[i]) == HANDLER_DISCONNECT)
+				{
+					shutDownServers(data.servers);
+					exit(EXIT_FAILURE);
+				}
+			}
+
 		} catch (std::exception& e) {
-			std::cerr << "Error: events handler: " << e.what() << ", continue\n";
+			std::cerr<<"Error: event handler: " << e.what() << "\n";
+			continue;
 		}
 	}
 }

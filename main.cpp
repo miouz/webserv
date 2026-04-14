@@ -1,19 +1,18 @@
 #include "src/webserv.hpp"
 
-int main()
+int main(int argc, char** argv)
 {
-	//TODO: argv error check
-	//TODO: creat config class with config file(try-catch)
-
 	Data data;
 
-	data.servers.reserve(1024);
-	data.clients.reserve(1024);
-	data.fdPool.reserve(1024);
-
-
-	//set up each server
-	setUpServers(data);
+	try {
+		std::vector<ServerConfig> webserv = argsToServerConfigs(argc, argv);
+		configWebServers(webserv, data);
+		setUpServers(data);
+	} catch (std::exception& e) {
+		std::cerr<< "Error Fatal: " << e.what() << "\n";
+		shutDownServers(data.servers);
+		exit(EXIT_FAILURE);
+	}
 	pollEventsLoop(data);
 	shutDownServers(data.servers);
 	return EXIT_SUCCESS;

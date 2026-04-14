@@ -12,29 +12,41 @@
 #include <netinet/in.h>
 #include <poll.h>
 #include "Client.hpp"
+#include "ServerConfig.hpp"
 #include <netinet/in.h>
 #include <vector>
 
 
 class Server
 {
-	int sockFd_;
-	int port_;
-	sockaddr_in address_;
-	std::vector<Client*> clients_;
+	int						sockFd_;
+	int						port_;
+	sockaddr_in				address_;
+	std::vector<Client*>	clients_;
+	ServerConfig			config_;
 
 	public:
-	Server();
+	Server(ServerConfig& config);
 	Server(int fd, int port);
 	~Server();
 
 	//getter and setter
-	void setSockFd(int fd);
-	void setPort(int port);
-	int getSockFd() const;
-	sockaddr_in& getAddress();
-	int getPort() const;
-	std::vector<Client*>& getClients();
+	void						setSockFd(int fd);
+	void						setPort(int port);
+	int							getSockFd() const;
+	sockaddr_in&				getAddress();
+	int							getPort() const;
+	std::vector<Client*>& 		getClients();
+	ServerConfig				getServerConfig() const;
+
+	//wraper ServerConfig
+	std::vector<Location>		getLocations();
+	std::string					getListen();
+	std::string					getServerName();
+	std::string					getRoot();
+	std::vector<std::string>	getIndex();
+	std::map<int, std::string>	getErrorPage();
+	int							getClientMaxBodySize();
 
 	void setUpServer();
 	Client* acceptClient();

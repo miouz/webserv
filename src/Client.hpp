@@ -14,6 +14,7 @@
 #include <poll.h>
 #include <ctime>
 #include <vector>
+#include "RequestParser.hpp"
 
 #define RETURN_ERROR -1
 #define CLIENT_TIMEOUT_SECONDES 30
@@ -30,13 +31,14 @@ enum clientStatus
 
 class Client
 {
-	int fd_;
-	Server& server_;
-	sockaddr_in address_;
-	std::string bufferIn_;
-	std::string bufferOut_;
-	clientStatus status_;
-	time_t lastActivityTime_;
+	int				fd_;
+	Server&			server_;
+	sockaddr_in		address_;
+	std::string		bufferOut_;
+	clientStatus	status_;
+	time_t			lastActivityTime_;
+	RequestParser	request_;
+
 	
 	
 	public:
@@ -50,9 +52,9 @@ class Client
 	clientStatus getStatus() const;
 	Server& getServer() const;
 	void setStatus(clientStatus status);
-	std::string& getBufferIn();
 	std::string& getBufferOut();
 	time_t	getLastActivityTime() const;
+	RequestParser& getRequest();
 
 	void closeClient();
 	void removeFromServer();
