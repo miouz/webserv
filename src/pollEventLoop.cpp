@@ -59,22 +59,18 @@ HandlerResult clientEventHandler(Data& data, pollfd& fd, Client* client)
 			return HANDLER_DISCONNECT;
 		if (bytesRead > 0)
 		{
-			if (!client->getRequest().isComplete())
-			{
-				std::string toFeed(buff, bytesRead);
-				client->getRequest().feed(toFeed);
-				client->updateLastActivityTime();
-			}
-			else {
-				//TODO: reply to request
-				//client->buildResponse();
-			}
+			std::string toFeed(buff, bytesRead);
+			client->getRequest().feed(toFeed);
+			if (client->getRequest().isComplete())
+				;
+			// TODO: build response of request
+				// client->buildResponse();
 			#ifdef DEBUG
 				std::cout << "\nClient on fd "<<client->getFd() <<  " recieved request:\n" << buff << "\n";
 			#endif
 		}
 	}
-	else if (fd.revents & POLLOUT)
+	if (fd.revents & POLLOUT)
 	{
 		//TODO: send response to request
 		//client->sendResponse();		
@@ -122,8 +118,8 @@ void eventsHandler(Data& data)
 					|| clientEventHandler(data, data.fdPool[i], client) == HANDLER_DISCONNECT)
 				{
 					disconnectClient(data.fdPool[i].fd, data.clients, data.fdPool, data.fdPool.begin() + i);
-					i--;
-					continue;
+					--i;
+					continue ;
 				}
 			}
 			else
@@ -138,7 +134,7 @@ void eventsHandler(Data& data)
 
 		} catch (std::exception& e) {
 			std::cerr<<"Error: event handler: " << e.what() << "\n";
-			continue;
+			continue ;
 		}
 	}
 }
