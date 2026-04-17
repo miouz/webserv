@@ -14,11 +14,7 @@ void	configWebServers(std::vector<ServerConfig>& webserv, Data& data)
 	data.clients.reserve(1024);
 	data.fdPool.reserve(1024);
 	for (size_t i = 0; i < webserv.size(); i++)
-	{
-		// if (!webserv[i].isValidServerConfig())
-		// 	throw std::runtime_error("config file not valid");
 		data.servers.push_back(new Server(webserv[i]));
-	}
 }
 
 /**
@@ -30,12 +26,12 @@ void	configWebServers(std::vector<ServerConfig>& webserv, Data& data)
  */
 void setUpServers(Data& data)
 {
+	if (data.servers.size() == 0)
+		throw std::runtime_error("no server to run");
 	for (size_t i = 0; i < data.servers.size(); i++)
 	{
 		data.servers[i]->setUpServer();
 		pollfd serverFd = fdToPollfdWithStatus(data.servers[i]->getSockFd(), POLLIN);
 		data.fdPool.push_back(serverFd);
 	}
-	if (data.servers.size() == 0)
-		throw std::runtime_error("no server to run");
 }
