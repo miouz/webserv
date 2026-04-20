@@ -84,6 +84,22 @@ void Client::updateLastActivityTime()
 	lastActivityTime_ = now;
 }
 
+/**
+ * @brief [TODO: build request response]
+ */
+void Client::buildResponse()
+{
+
+}
+
+/**
+ * @brief [TODO:send request response]
+ */
+bool Client::sendResponse()
+{
+	return true;
+}
+
 Client* findClient(int fd, std::vector<Client*>& clients)
 {
 	for (size_t i = 0; i < clients.size(); i++)

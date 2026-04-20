@@ -62,9 +62,7 @@ HandlerResult clientEventHandler(Data& data, pollfd& fd, Client* client)
 			std::string toFeed(buff, bytesRead);
 			client->getRequest().feed(toFeed);
 			if (client->getRequest().isComplete())
-				;
-			// TODO: build response of request
-				// client->buildResponse();
+				client->buildResponse();
 			#ifdef DEBUG
 				std::cout << "\nClient on fd "<<client->getFd() <<  " recieved request:\n" << buff << "\n";
 			#endif
@@ -72,11 +70,13 @@ HandlerResult clientEventHandler(Data& data, pollfd& fd, Client* client)
 	}
 	if (fd.revents & POLLOUT)
 	{
-		//TODO: send response to request
-		//client->sendResponse();		
-		#ifdef DEBUG
-		std::cout << "response sent\n";
-		#endif
+		bool fullySent = client->sendResponse();
+		if (fullySent)
+		{
+			#ifdef DEBUG
+			std::cout << "response sent\n";
+			#endif
+		}
 	}
 	return HANDLER_OK;
 }

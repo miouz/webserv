@@ -60,6 +60,8 @@ class Client
 	void removeFromServer();
 	bool isTimeOut();
 	void updateLastActivityTime();
+	void buildResponse();
+	bool sendResponse();
 };
 
 std::ostream& operator<<(std::ostream& out, Client& client);
