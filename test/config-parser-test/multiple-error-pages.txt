@@ -1,4 +1,15 @@
-server {
-  error_page 404 /404.html;
-  error_page 500 /500.html;
+server
+{
+    listen 1;
+    error_page 404 error/error404;
+    error_page 500 error/error500;
+    client_max_body_size 40000;
+    location root
+    {
+        root .;
+        return 1 error/return;
+        upload_store upload;
+        index index.html index.htm default.html;
+		cgi_extension .py cgi/py;
+    }
 }

@@ -1,4 +1,5 @@
 #include "../../src/Config.hpp"
+#include "../../src/Location.hpp"
 #include "../testUtils.hpp"
 #include <iostream>
 #include <fstream>
@@ -21,65 +22,26 @@ static bool throws_on(const std::string& content)
 // ═════════════════════════════════════════════════════════════════════════════
 //  1. Minimal / basic server block
 // ═════════════════════════════════════════════════════════════════════════════
-
-static void test_empty_server_block(void)
+//
+static void test_full_mandatory_config(void)
 {
-    SUITE("Minimal — empty server block");
-    bool threw = throws_on("test/config-parser-test/minimal-empty-server-block.txt");
-    ASSERT_EQ("parses without throw", false, threw);
-    if (!threw)
-    {
-        Config c("test/config-parser-test/minimal-empty-server-block.txt");
-        ASSERT_EQ("one server", (size_t)1, c.getServers().size());
-    }
+    SUITE("One server — mandatory_config");
+    Config c("test/config-parser-test/mandatory_config.txt");
+    std::map<int, std::string> ep = c.getServers()[0].getErrorPage();
+    ASSERT_EQ("server count", (size_t)1, c.getServers().size());
+    ASSERT_EQ("first listen",  1, c.getServers()[0].getListen());
+    ASSERT_EQ("error_page count", (size_t)1, ep.size());
+    ASSERT_EQ("405 page", std::string("error/error405"), ep[405]);
+    ASSERT_EQ("client_max_body_size", 40000, c.getServers()[0].getClientMaxBodySize());
+    Location loc = c.getServers()[0].getLocations()[0];
+
+    ASSERT_EQ("root", ".", loc.getRoot());
+    ASSERT_EQ("returnString", (int)1, loc.getReturn().first);
+    ASSERT_EQ("returnInt", "error/return", loc.getReturn().second);
     SUITE_END();
 }
-
-static void test_single_listen(void)
-{
-    SUITE("Minimal — listen directive");
-    bool threw = throws_on("test/config-parser-test/single-listen.txt");
-    ASSERT_EQ("parses without throw", false, threw);
-    if (!threw)
-    {
-		Config c("test/config-parser-test/single-listen.txt");
-		ASSERT_EQ("server count",  (size_t)1,       c.getServers().size());
-		ASSERT_EQ("listen value",  std::string("8080"), c.getServers()[0].getListen());
-	}
-    SUITE_END();
-}
-
-static void test_single_server_name(void)
-{
-    SUITE("Minimal — server_name directive");
-    bool threw = throws_on("test/config-parser-test/single-server-name.txt");
-    ASSERT_EQ("parses without throw", false, threw);
-    if (!threw)
-    {
-		Config c("test/config-parser-test/single-server-name.txt");
-		ASSERT_EQ("server_name", std::string("example.com"), c.getServers()[0].getServerName());
-	}
-    SUITE_END();
-}
-
-static void test_single_root(void)
-{
-    SUITE("Minimal — root directive");
-    Config c("test/config-parser-test/single-root.txt");
-    ASSERT_EQ("root", std::string("/var/www/html"), c.getServers()[0].getRoot());
-    SUITE_END();
-}
-
-static void test_client_max_body_size(void)
-{
-    SUITE("Minimal — client_max_body_size");
-    Config c("test/config-parser-test/client-max-body-size.txt");
-    ASSERT_EQ("client_max_body_size", 4096, c.getServers()[0].getClientMaxBodySize());
-    SUITE_END();
-}
-
 // ═════════════════════════════════════════════════════════════════════════════
-//  2. Multiple servers
+//  1. Multiple servers
 // ═════════════════════════════════════════════════════════════════════════════
 
 static void test_two_servers(void)
@@ -87,16 +49,9 @@ static void test_two_servers(void)
     SUITE("Multiple servers — two blocks");
     Config c("test/config-parser-test/two-servers.txt");
     ASSERT_EQ("server count", (size_t)2, c.getServers().size());
-    ASSERT_EQ("first listen",  std::string("8080"), c.getServers()[0].getListen());
-    ASSERT_EQ("second listen", std::string("9090"), c.getServers()[1].getListen());
-    SUITE_END();
-}
+    ASSERT_EQ("first listen",  1, c.getServers()[0].getListen());
+    ASSERT_EQ("second listen", 1, c.getServers()[1].getListen());
 
-static void test_three_servers(void)
-{
-    SUITE("Multiple servers — three blocks");
-    Config c("test/config-parser-test/three-servers.txt");
-    ASSERT_EQ("server count", (size_t)3, c.getServers().size());
     SUITE_END();
 }
 
@@ -104,21 +59,11 @@ static void test_three_servers(void)
 //  3. Index directive
 // ═════════════════════════════════════════════════════════════════════════════
 
-static void test_single_index(void)
-{
-    SUITE("Index — single value");
-    Config c("test/config-parser-test/single-index.txt");
-    std::vector<std::string> idx = c.getServers()[0].getIndex();
-    ASSERT_EQ("index count", (size_t)1, idx.size());
-    ASSERT_EQ("index[0]", std::string("index.html"), idx[0]);
-    SUITE_END();
-}
-
 static void test_multiple_index(void)
 {
     SUITE("Index — multiple values");
     Config c("test/config-parser-test/multiple-index.txt");
-    std::vector<std::string> idx = c.getServers()[0].getIndex();
+    std::vector<std::string> idx = c.getServers()[0].getLocations()[0].getIndex();
     ASSERT_EQ("index count", (size_t)3, idx.size());
     ASSERT_EQ("index[0]", std::string("index.html"), idx[0]);
     ASSERT_EQ("index[1]", std::string("index.htm"),  idx[1]);
@@ -130,40 +75,20 @@ static void test_multiple_index(void)
 //  4. Error pages
 // ═════════════════════════════════════════════════════════════════════════════
 
-static void test_error_page_404(void)
-{
-    SUITE("Error page — 404");
-    Config c("test/config-parser-test/error-page-404.txt");
-    std::map<int, std::string> ep = c.getServers()[0].getErrorPage();
-    ASSERT_EQ("error_page count", (size_t)1, ep.size());
-    ASSERT_EQ("404 page", std::string("/errors/404.html"), ep[404]);
-    SUITE_END();
-}
-
 static void test_multiple_error_pages(void)
 {
     SUITE("Error page — multiple codes");
     Config c( "test/config-parser-test/multiple-error-pages.txt");
     std::map<int, std::string> ep = c.getServers()[0].getErrorPage();
     ASSERT_EQ("error_page count", (size_t)2, ep.size());
-    ASSERT_EQ("404 page", std::string("/404.html"), ep[404]);
-    ASSERT_EQ("500 page", std::string("/500.html"), ep[500]);
+    ASSERT_EQ("404 page", std::string("error/error404"), ep[404]);
+    ASSERT_EQ("500 page", std::string("error/error500"), ep[500]);
     SUITE_END();
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
 //  5. Location blocks
 // ═════════════════════════════════════════════════════════════════════════════
-
-static void test_empty_location(void)
-{
-    SUITE("Location — empty block");
-    Config c("test/config-parser-test/empty-location.txt");
-    std::vector<Location> locs = c.getServers()[0].getLocations();
-    ASSERT_EQ("location count", (size_t)1, locs.size());
-    ASSERT_EQ("location path", std::string("/"), locs[0].getPath());
-    SUITE_END();
-}
 
 static void test_location_root(void)
 {
@@ -232,15 +157,6 @@ static void test_location_upload_store(void)
     SUITE_END();
 }
 
-static void test_location_cgi_pass(void)
-{
-    SUITE("Location — cgi_path");
-    Config c("test/config-parser-test/location-cgi-pass.txt");
-    ASSERT_EQ("cgi_pass", std::string("/usr/bin/python3"),
-        c.getServers()[0].getLocations()[0].getCgiPass());
-    SUITE_END();
-}
-
 static void test_location_cgi_extension(void)
 {
     SUITE("Location — cgi_extension");
@@ -255,9 +171,8 @@ static void test_location_return(void)
 {
     SUITE("Location — return directive");
     Config c("test/config-parser-test/location-return.txt");
-    std::map<int, std::string> ep = c.getServers()[0].getLocations()[0].getErrorPage();
-    ASSERT_EQ("return count", (size_t)1, ep.size());
-    ASSERT_EQ("301 target", std::string("/new"), ep[301]);
+    std::pair<int, std::string> ep = c.getServers()[0].getLocations()[0].getReturn();
+    ASSERT_EQ("301 target", std::string("/new"), ep.second);
     SUITE_END();
 }
 
@@ -266,7 +181,7 @@ static void test_location_client_max_body_size(void)
     SUITE("Location — client_max_body_size");
     Config c("test/config-parser-test/location-client-max-body-size.txt");
     ASSERT_EQ("client_max_body_size", 8192,
-        c.getServers()[0].getLocations()[0].getClientMaxBodySize());
+        c.getServers()[0].getClientMaxBodySize());
     SUITE_END();
 }
 
@@ -283,26 +198,7 @@ static void test_multiple_locations(void)
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
-//  6. Full realistic config
-// ═════════════════════════════════════════════════════════════════════════════
-
-static void test_full_server_block(void)
-{
-    SUITE("Full — realistic server block");
-    Config c("test/config-parser-test/full-server-block.txt");
-    ServerConfig s = c.getServers()[0];
-    ASSERT_EQ("listen",      std::string("8080"),     s.getListen());
-    ASSERT_EQ("server_name", std::string("mysite.com"), s.getServerName());
-    ASSERT_EQ("root",        std::string("/var/www"),  s.getRoot());
-    ASSERT_EQ("index count", (size_t)2,               s.getIndex().size());
-    ASSERT_EQ("cmbs",        2048,                    s.getClientMaxBodySize());
-    ASSERT_EQ("error pages", (size_t)2,               s.getErrorPage().size());
-    ASSERT_EQ("locations",   (size_t)2,               s.getLocations().size());
-    SUITE_END();
-}
-
-// ═════════════════════════════════════════════════════════════════════════════
-//  7. Bad input / errors
+//  6. Bad input / errors
 // ═════════════════════════════════════════════════════════════════════════════
 
 static void test_empty_file(void)
@@ -416,26 +312,18 @@ void run_config_parser_tests(void)
               << C_RESET "\n";
 
     // Basic directives
-    test_empty_server_block();
-    test_single_listen();
-    test_single_server_name();
-    test_single_root();
-    test_client_max_body_size();
+	test_full_mandatory_config();
 
     // Multiple servers
     test_two_servers();
-    test_three_servers();
 
     // Index
-    test_single_index();
     test_multiple_index();
 
     // Error pages
-    test_error_page_404();
     test_multiple_error_pages();
 
     // Location blocks
-    test_empty_location();
     test_location_root();
     test_location_methods_get_only();
     test_location_methods_all();
@@ -443,14 +331,10 @@ void run_config_parser_tests(void)
     test_location_autoindex_off();
     test_location_index();
     test_location_upload_store();
-    test_location_cgi_pass();
     test_location_cgi_extension();
     test_location_return();
     test_location_client_max_body_size();
     test_multiple_locations();
-
-    // Full config
-    test_full_server_block();
 
     // Bad input
     test_empty_file();

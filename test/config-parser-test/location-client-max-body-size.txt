@@ -1,1 +1,14 @@
-server { location /upload { client_max_body_size 8192; } }
+server
+{
+    listen 1;
+    error_page 404 error/error404;
+	client_max_body_size 8192;
+    location /upload
+    {
+        root .;
+        return 1 error/return;
+        upload_store upload;
+        index index.html index.htm default.html;
+		cgi_extension .py cgi/py;
+    }
+}
