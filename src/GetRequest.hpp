@@ -4,13 +4,17 @@
 struct responseGetRequest
 {
 	std::string	protocol;
+	std::string	uri;
 	int	successCode;
 	std::string	server;
+	std::string	path;
 	std::string	contentType;
-	std::string	extension;
+	std::string	content;
+	bool	listDirectory;
 	size_t	contentLength;
 };
 
+//TODO: for better optimization, preload mapExtension
 class GetRequest
 {
 	public:
@@ -22,5 +26,16 @@ class GetRequest
 		static std::string	generateMessageResponse(const responseGetRequest&);
 		static size_t	checkLength(int);
 		static void	checkExtension(std::string&, responseGetRequest&);
+		static void	checkSize(std::string&);
 		static std::map<std::string, std::string>	mapExtension();
+		static std::string generateResponse(ServerConfig&, responseGetRequest&);
+		static std::string getMessageCode(int);
+		static bool	isGoodPath(responseGetRequest&);
+		static bool	isDirectory(std::string&);
+		static void	serveFile(responseGetRequest&);
+		static void	listDirectory(responseGetRequest&);
+		static bool	findIndexPage(ServerConfig&, responseGetRequest&);
+
+		static std::string	formatHttpDate(time_t t);
+		static std::string	FormatFileDate(time_t t);
 };
