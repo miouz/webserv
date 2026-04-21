@@ -18,10 +18,7 @@ public :
 	~ServerConfig( void );
 
 	std::vector<Location>		getLocations();
-	std::string					getListen();
-	std::string					getServerName();
-	std::string					getRoot();
-	std::vector<std::string>	getIndex();
+	int							getListen();
 	std::map<int, std::string>	getErrorPage();
 	int							getClientMaxBodySize();
 
@@ -35,22 +32,16 @@ private :
 	void	unexpectedVariableEndException(std::string word, std::ifstream &file);
 	void	unexpectedTokenException(std::string word, std::ifstream &file);
 	void	setLocation(std::string word, std::ifstream &file);
-	void	setName(std::string w, std::ifstream &file);
-	void	setRoot(std::string w, std::ifstream &file);
-	void	setIndex(std::string w, std::ifstream &file);
 	void	setErrorPage(std::string w, std::ifstream &file);
-	void	setCMBS(std::string w, std::ifstream &file);
 	void	setListen(std::string w, std::ifstream &file);
+	void	setCMBS(std::string w, std::ifstream &file);
 	void	init();
+	void	checkComplete();
 
 	std::vector<Location>		locations;
-	std::string					listen;
-	std::string					server_name;
-	std::string					root;
-	std::vector<std::string>	index;
+	int							listen;
 	std::map<int, std::string>	error_page;
 	int							client_max_body_size;
-
 };
 
 bool	isReadableNumber(std::string word);
