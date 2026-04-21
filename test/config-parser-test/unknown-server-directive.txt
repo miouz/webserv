@@ -1,1 +1,15 @@
-server { foobar 42; }
+server
+{
+	foobar 42;
+    listen 1;
+    error_page 404 error/error404;
+    client_max_body_size 40000;
+    location root
+    {
+        root .;
+        return 1 error/return;
+        upload_store upload;
+        index index.html index.htm default.html;
+		cgi_extension .py cgi/py;
+    }
+}

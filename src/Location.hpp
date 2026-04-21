@@ -17,19 +17,15 @@ public :
 	~Location( void );
 	Location &operator=(Location const &copy);
 
-	std::string							getPath();
-	bool*								getMethods();
-	std::string							getRoot();
-	std::vector<std::string>			getIndex();
-	bool								getAutoindex();
-	std::pair<int,std::string>			getReturn();
-	std::string							getUploadStore();
-	std::map<std::string,std::string>	getCgiExtension();
-	std::map<int, std::string>			getErrorPage();
-	std::string							getCgiPass();
-	int									getClientMaxBodySize();
-	void								print();
-
+	const std::string&							getPath() const;
+	const bool*									getMethods() const;
+	const std::string&							getRoot() const;
+	const   std::vector<std::string>&			getIndex() const;
+	bool										getAutoindex() const;
+	const   std::pair<int,std::string>&			getReturn() const;
+	const   std::string&						getUploadStore() const;
+	const   std::map<std::string,std::string>&	getCgiExtension() const;
+	void										print() const;
 
 
 private :
@@ -45,9 +41,8 @@ private :
 	void	setReturn(std::string w, std::ifstream &file);
 	void	setUS(std::string w, std::ifstream &file);
 	void	setCGIE(std::string w, std::ifstream &file);
-	void	setCGIP(std::string w, std::ifstream &file);
-	void	setCMBS(std::string w, std::ifstream &file);
 	void	init();
+	void	checkComplete();
 	
 	std::string							path;
 	bool								methods[3];
@@ -57,9 +52,6 @@ private :
 	std::pair<int,std::string>			_return;
 	std::string							upload_store;
 	std::map<std::string,std::string>	cgi_extension;
-	std::map<int, std::string>			error_page;
-	std::string							cgi_pass;
-	int									client_max_body_size;
 };
 
 	bool		isspace(char c);
