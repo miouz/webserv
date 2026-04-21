@@ -182,7 +182,7 @@ void	ServerConfig::setListen(std::string w, std::ifstream &file)
 }
 
 
-std::vector<Location>		ServerConfig::getLocations()
+const std::vector<Location>&		ServerConfig::getLocations() const
 {
 	return (this->locations);
 }
@@ -194,7 +194,7 @@ int							ServerConfig::getClientMaxBodySize()
 {
 	return (this->client_max_body_size);
 }
-std::map<int, std::string>	ServerConfig::getErrorPage()
+const std::map<int, std::string>&	ServerConfig::getErrorPage() const
 {
 	return (this->error_page);
 }

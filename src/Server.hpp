@@ -36,12 +36,12 @@ class Server
 	sockaddr_in&				getAddress();
 	int							getPort() const;
 	std::vector<Client*>& 		getClients();
-	ServerConfig				getServerConfig() const;
+	ServerConfig&				getServerConfig();
 
 	//wraper ServerConfig
-	std::vector<Location>		getLocations();
+	const std::vector<Location>&		getLocations() const;
 	int							getListen();
-	std::map<int, std::string>	getErrorPage();
+	const std::map<int, std::string>&	getErrorPage() const;
 	int							getClientMaxBodySize();
 
 	void setUpServer();

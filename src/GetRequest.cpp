@@ -13,11 +13,12 @@ GetRequest::GetRequest() {}
 
 GetRequest::~GetRequest() {}
 
-std::string	GetRequest::response(ServerConfig& config, ParsedData& data)
+std::string	GetRequest::response(const ServerConfig& config, const ParsedData& data)
 {
 	Location location = config.getLocations()[0];
 	responseGetRequest	responseData = initResponse(location, data);
 
+	std::cout <<  "TRYING TO GET " << responseData.uri << '\n';
 	if (isGoodPath(responseData) == true)
 	{
 		if (isDirectory(data.uri) == false || findIndexPage(location, responseData))
@@ -28,10 +29,12 @@ std::string	GetRequest::response(ServerConfig& config, ParsedData& data)
 	return generateResponse(config, responseData);
 }
 
-responseGetRequest	GetRequest::initResponse(Location& location, ParsedData& data)
+responseGetRequest	GetRequest::initResponse(Location& location, const ParsedData& data)
 {
 	responseGetRequest	 response;
 	
+	response.root = location.getRoot() + "/";
+	std::cout << "ROOT=[" << response.root << "]\n";
 	response.protocol = "HTTP/1.0";
 	response.server = "webserv";
 	response.successCode = 200;
@@ -40,7 +43,10 @@ responseGetRequest	GetRequest::initResponse(Location& location, ParsedData& data
 	response.listDirectory = false;
 	response.autoIndex = location.getAutoindex();
 	response.uri = data.uri;
-	response.path = location.getRoot() + data.uri;
+	response.path = location.getRoot();
+	std::cout << response.uri << ":" << response.path << '\n';
+	if (data.uri != response.root)
+		response.path += data.uri;
 	return response;
 }
 
@@ -74,12 +80,15 @@ std::map<std::string, std::string> GetRequest::mapExtension()
 	return map;
 }
 
-std::string	GetRequest::generateResponse(ServerConfig& config, responseGetRequest& responseData)
+std::string	GetRequest::generateResponse(const ServerConfig& config, responseGetRequest& responseData)
 {
 	if (responseData.successCode != 200)
 	{
-		std::string		errorPage = config.getErrorPage()[responseData.successCode];
+		std::cout << "SERVE ERROR\n";
+		std::map<int, std::string>		errorMap = config.getErrorPage();
+		std::string	errorPage = errorMap[responseData.successCode];
 		responseData.path = "./" + errorPage;
+		std::cout << "Serve: " << responseData.path << '\n';
 		serveFile(responseData);
 	}
 	time_t	t = time(NULL);
@@ -105,17 +114,19 @@ std::string	GetRequest::generateResponse(ServerConfig& config, responseGetReques
 
 bool	GetRequest::isGoodPath(responseGetRequest& responseData)
 {
-	if (responseData.path.find("/..") != std::string::npos)
+	std::cout << "find :" << responseData.root << " in " << responseData.uri << '\n';
+	if (responseData.root == responseData.uri)
 	{
+		std::cout << "ITIS\n";
 		responseData.successCode = 403;
 		return false;
 	}
-	else if (access(responseData.path.c_str(), F_OK) < 0)
+	if (access(responseData.path.c_str(), F_OK) < 0)
 	{
 		responseData.successCode = 404;
 		return false;
 	}
-	else if (access(responseData.path.c_str(), R_OK) < 0)
+	if (access(responseData.path.c_str(), R_OK) < 0)
 	{
 		responseData.successCode = 403;
 		return false;
@@ -123,7 +134,7 @@ bool	GetRequest::isGoodPath(responseGetRequest& responseData)
 	return true;
 }
 
-bool	GetRequest::isDirectory(std::string& uri)
+bool	GetRequest::isDirectory(const std::string& uri)
 {
 	if (uri.find_last_of("/") + 1 == uri.size())
 		return true;
@@ -172,7 +183,7 @@ void	GetRequest::listDirectory(responseGetRequest& responseData)
 	}
 	responseData.content = "<html>\n<head><title>Index of " + responseData.uri
 		+ "</title></head>\n<body>\n<h1>Index of "
-		+ responseData.uri + "</h1><hr><pre><a href=\"" + responseData.path + "../\">../</a>\n";
+		+ responseData.uri + "</h1><hr><pre><a href=\"" + "../\">../</a>\n";
 	while (dirp)
 	{
 		if ((dp = readdir(dirp)) != NULL)

@@ -13,13 +13,13 @@ int Server::getSockFd() const { return sockFd_;}
 
 struct sockaddr_in& Server::getAddress() { return address_; }
 
-ServerConfig Server::getServerConfig() const { return config_;}
+ServerConfig& Server::getServerConfig() { return config_;}
 
-std::vector<Location>	Server::getLocations() { return config_.getLocations();}
+const std::vector<Location>&	Server::getLocations() const { return config_.getLocations();}
 
 int Server::getListen() { return config_.getListen();}
 
-std::map<int, std::string>	Server::getErrorPage() {return config_.getErrorPage();}
+const std::map<int, std::string>&	Server::getErrorPage() const {return config_.getErrorPage();}
 
 int	Server::getClientMaxBodySize() {return config_.getClientMaxBodySize();}
 

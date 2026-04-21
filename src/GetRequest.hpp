@@ -4,6 +4,7 @@
 
 struct responseGetRequest
 {
+	std::string	root;
 	std::string	protocol;
 	std::string	uri;
 	int	successCode;
@@ -20,20 +21,20 @@ struct responseGetRequest
 class GetRequest
 {
 	public:
-		static std::string	response(ServerConfig&, ParsedData&);
+		static std::string	response(const ServerConfig&, const ParsedData&);
 	private:
 		GetRequest();
 		~GetRequest();
-		static responseGetRequest	initResponse(Location&, ParsedData&);
-		static std::string	generateMessageResponse(const responseGetRequest&);
+		static responseGetRequest	initResponse(Location&, const ParsedData&);
+		static std::string	generateMessageResponse(responseGetRequest&);
 		static size_t	checkLength(int);
 		static void	checkExtension(responseGetRequest&);
 		static void	checkSize(std::string&);
 		static std::map<std::string, std::string>	mapExtension();
-		static std::string generateResponse(ServerConfig&, responseGetRequest&);
+		static std::string generateResponse(const ServerConfig&, responseGetRequest&);
 		static std::string getMessageCode(int);
 		static bool	isGoodPath(responseGetRequest&);
-		static bool	isDirectory(std::string&);
+		static bool	isDirectory(const std::string&);
 		static void	serveFile(responseGetRequest&);
 		static void	listDirectory(responseGetRequest&);
 		static bool	findIndexPage(Location&, responseGetRequest&);

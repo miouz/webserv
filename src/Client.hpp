@@ -15,6 +15,7 @@
 #include <ctime>
 #include <vector>
 #include "RequestParser.hpp"
+#include "GetRequest.hpp"
 
 #define RETURN_ERROR -1
 #define CLIENT_TIMEOUT_SECONDES 30
