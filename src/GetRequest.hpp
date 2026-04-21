@@ -1,4 +1,5 @@
 #include "Config.hpp"
+#include "Location.hpp"
 #include "RequestParser.hpp"
 
 struct responseGetRequest
@@ -10,6 +11,7 @@ struct responseGetRequest
 	std::string	path;
 	std::string	contentType;
 	std::string	content;
+	bool	autoIndex;
 	bool	listDirectory;
 	size_t	contentLength;
 };
@@ -22,10 +24,10 @@ class GetRequest
 	private:
 		GetRequest();
 		~GetRequest();
-		static responseGetRequest	initResponse();
+		static responseGetRequest	initResponse(Location&, ParsedData&);
 		static std::string	generateMessageResponse(const responseGetRequest&);
 		static size_t	checkLength(int);
-		static void	checkExtension(std::string&, responseGetRequest&);
+		static void	checkExtension(responseGetRequest&);
 		static void	checkSize(std::string&);
 		static std::map<std::string, std::string>	mapExtension();
 		static std::string generateResponse(ServerConfig&, responseGetRequest&);
@@ -34,7 +36,7 @@ class GetRequest
 		static bool	isDirectory(std::string&);
 		static void	serveFile(responseGetRequest&);
 		static void	listDirectory(responseGetRequest&);
-		static bool	findIndexPage(ServerConfig&, responseGetRequest&);
+		static bool	findIndexPage(Location&, responseGetRequest&);
 
 		static std::string	formatHttpDate(time_t t);
 		static std::string	FormatFileDate(time_t t);

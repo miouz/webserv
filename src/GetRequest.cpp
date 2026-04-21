@@ -15,14 +15,12 @@ GetRequest::~GetRequest() {}
 
 std::string	GetRequest::response(ServerConfig& config, ParsedData& data)
 {
-	responseGetRequest	responseData = initResponse();
-	Location location = config.getLocations()
+	Location location = config.getLocations()[0];
+	responseGetRequest	responseData = initResponse(location, data);
 
-	responseData.uri = data.uri;
-	responseData.path = config.getRoot() + data.uri;
 	if (isGoodPath(responseData) == true)
 	{
-		if (isDirectory(data.uri) == false || findIndexPage(config, responseData))
+		if (isDirectory(data.uri) == false || findIndexPage(location, responseData))
 			serveFile(responseData);
 		else
 			listDirectory(responseData);
@@ -30,7 +28,7 @@ std::string	GetRequest::response(ServerConfig& config, ParsedData& data)
 	return generateResponse(config, responseData);
 }
 
-responseGetRequest	GetRequest::initResponse()
+responseGetRequest	GetRequest::initResponse(Location& location, ParsedData& data)
 {
 	responseGetRequest	 response;
 	
@@ -40,16 +38,19 @@ responseGetRequest	GetRequest::initResponse()
 	response.contentType = "application/octet-stream";
 	response.contentLength = 0;
 	response.listDirectory = false;
+	response.autoIndex = location.getAutoindex();
+	response.uri = data.uri;
+	response.path = location.getRoot() + data.uri;
 	return response;
 }
 
-void	GetRequest::checkExtension(std::string& uri, responseGetRequest& response)
+void	GetRequest::checkExtension(responseGetRequest& response)
 {
 	std::map<std::string, std::string>	map = mapExtension();
-	size_t	found = uri.find_last_of(".");
+	size_t	found = response.uri.find_last_of(".");
 	if (found != std::string::npos)
 	{
-		std::string	extension = uri.substr(found + 1);
+		std::string	extension = response.uri.substr(found + 1);
 		std::string	type = map[extension];
 		if (type.empty() == false)
 			response.contentType = type;
@@ -138,7 +139,7 @@ void	GetRequest::serveFile(responseGetRequest& responseData)
 	{
 		char	buffer[1024];
 
-		checkExtension(responseData.path, responseData);
+		checkExtension(responseData);
 		while (1)
 		{
 			int readData = read(fd, buffer, 1024);
@@ -158,11 +159,6 @@ void	GetRequest::serveFile(responseGetRequest& responseData)
 
 void	GetRequest::listDirectory(responseGetRequest& responseData)
 {
-	// if (chdir(responseData.path.c_str()) < 0)
-	// {
-	// 	responseData.successCode = 500;
-	// 	return ;
-	// }
 	DIR* dirp = opendir(responseData.path.c_str());
 	dirent* dp;
 	struct stat sb;
@@ -202,12 +198,13 @@ void	GetRequest::listDirectory(responseGetRequest& responseData)
 	closedir(dirp);
 }
 
-bool	GetRequest::findIndexPage(ServerConfig& config, responseGetRequest& responseData)
+bool	GetRequest::findIndexPage(Location& location, responseGetRequest& responseData)
 {
-	if (config.getLocations()[0].
-	for (size_t i = 0; i < config.getIndex().size(); i++)
+	if (responseData.autoIndex == false)
+		return false;
+	for (size_t i = 0; i < location.getIndex().size(); i++)
 	{
-		std::string	path = responseData.path + config.getIndex()[i];
+		std::string	path = responseData.path + location.getIndex()[i];
 		if (access(path.c_str(), F_OK | R_OK) == 0)
 		{
 			responseData.path = path;
