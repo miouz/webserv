@@ -35,6 +35,7 @@ class Client
 	Server&			server_;
 	sockaddr_in		address_;
 	std::string		bufferOut_;
+	size_t			sent_;
 	clientStatus	status_;
 	time_t			lastActivityTime_;
 	RequestParser	request_;
