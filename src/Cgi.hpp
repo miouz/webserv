@@ -26,7 +26,7 @@ private :
 
 
 
-	char** Cgi::buildEnv();
+	char** buildEnv();
 
 	std::string							scriptPath;
 	std::string							interpreterPath;
