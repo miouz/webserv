@@ -1,0 +1,45 @@
+#ifndef CGI_HPP
+# define CGI_HPP
+
+# include <string>
+# include <map>
+
+class Cgi
+{
+
+public : 
+
+	~Cgi( void );
+	Cgi(ServerConfig server, ParsedData request);
+
+	int Cgi::execute(std::string &response);
+
+private :
+
+	Cgi( void );
+	Cgi(Cgi &copy);
+	Cgi &operator=(Cgi const &copy);
+	void	Cgi::execChild(char** env, int* pipein, int*pipeout);
+	void Cgi::freeEnv(char** env);
+
+
+
+
+	char** Cgi::buildEnv();
+
+	std::string							scriptPath;
+	std::string							interpreterPath;
+	std::string							workingDir;
+	std::string							method;
+	std::string							queryString;
+	std::string							body;
+	std::string							contentType;
+	size_t								contentLength;
+	int			   						serverPort;
+	std::string							scriptName;
+	std::string							pathInfo;
+	std::map<std::string, std::string>	httpHeaders;
+
+};
+
+#endif
