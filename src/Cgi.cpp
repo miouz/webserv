@@ -17,10 +17,13 @@ Location findLocation(const std::string& uri, const ServerConfig& server);
 
 	Cgi::Cgi(Cgi &copy)
 {
+	(void) copy;
 }
 
 Cgi	&Cgi::operator=(Cgi const &copy)
 {
+	(void) copy;
+	return (*this);
 }
 
 	Cgi::~Cgi( void )
