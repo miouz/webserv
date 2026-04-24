@@ -28,7 +28,6 @@ public :
 	const   std::map<std::string,std::string>&	getCgiExtension() const;
 	void										print() const;
 
-
 private :
 
 	void	unexpectedEndException(std::string word, std::ifstream &file);

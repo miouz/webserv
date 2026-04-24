@@ -12,15 +12,16 @@ public :
 	~Cgi( void );
 	Cgi(ServerConfig server, ParsedData request);
 
-	int Cgi::execute(std::string &response);
+	int execute(std::string &response);
 
 private :
 
 	Cgi( void );
 	Cgi(Cgi &copy);
-	Cgi &operator=(Cgi const &copy);
-	void	Cgi::execChild(char** env, int* pipein, int*pipeout);
-	void Cgi::freeEnv(char** env);
+
+	Cgi		&operator=(Cgi const &copy);
+	void	execChild(char** env, int* pipein, int*pipeout);
+	void	freeEnv(char** env);
 
 
 
