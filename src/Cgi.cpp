@@ -9,7 +9,7 @@
 #include <string>
 
 std::string readAll(int fd);
-Location findLocation(const std::string& uri, const ServerConfig& server);
+Location findLocation(std::string& uri, ServerConfig& server);
 
 	Cgi::Cgi( void )
 {
@@ -32,46 +32,46 @@ Cgi	&Cgi::operator=(Cgi const &copy)
 
 	Cgi::Cgi(ServerConfig server, ParsedData request)
 {
-method        = request.method;
-body          = request.body;
-contentLength = request.body.size();
+	method        = request.method;
+	body          = request.body;
+	contentLength = request.body.size();
 
-std::string uri = request.uri;
-size_t qPos = uri.find('?');
-std::string uriWithoutQuery = (qPos != std::string::npos) ? uri.substr(0, qPos) : uri;
-queryString = (qPos != std::string::npos) ? uri.substr(qPos + 1) : "";
+	std::string uri = request.uri;
+	size_t qPos = uri.find('?');
+	std::string uriWithoutQuery = (qPos != std::string::npos) ? uri.substr(0, qPos) : uri;
+	queryString = (qPos != std::string::npos) ? uri.substr(qPos + 1) : "";
 
-Location loc = findLocation(uri, server);
-std::map<std::string, std::string> cgiMap = loc.getCgiExtension();
-std::map<std::string, std::string>::iterator it;
-for (it = cgiMap.begin(); it != cgiMap.end(); ++it)
-{
-	size_t extPos = uriWithoutQuery.find(it->first);
-	if (extPos != std::string::npos)
+	Location loc = findLocation(uri, server);
+	std::map<std::string, std::string> cgiMap = loc.getCgiExtension();
+	std::map<std::string, std::string>::iterator it;
+	for (it = cgiMap.begin(); it != cgiMap.end(); ++it)
 	{
-		scriptName = uriWithoutQuery.substr(0, extPos + it->first.size());
-		pathInfo   = uriWithoutQuery.substr(extPos + it->first.size());
-		interpreterPath = it->second;
-		break;
+		size_t extPos = uriWithoutQuery.find(it->first);
+		if (extPos != std::string::npos)
+		{
+			scriptName = uriWithoutQuery.substr(0, extPos + it->first.size());
+			pathInfo   = uriWithoutQuery.substr(extPos + it->first.size());
+			interpreterPath = it->second;
+			break;
+		}
+	}	
+
+	scriptPath  = loc.getRoot() + scriptName;
+	workingDir  = scriptPath.substr(0, scriptPath.rfind('/'));
+
+	serverPort = server.getListen();
+
+	std::map<std::string,std::string>::const_iterator ctIt = request.headers.find("Content-Type");
+	contentType = (ctIt != request.headers.end()) ? ctIt->second : "";
+	for (std::map<std::string,std::string>::const_iterator h = request.headers.begin(); h != request.headers.end(); ++h)
+	{
+		if (h->first == "Content-Type" || h->first == "Content-Length")
+			continue;
+		std::string key = "HTTP_";
+		for (size_t i = 0; i < h->first.size(); i++)
+			key += (h->first[i] == '-') ? '_' : toupper(h->first[i]);
+		httpHeaders[key] = h->second;
 	}
-}
-
-scriptPath  = loc.getRoot() + scriptName;
-workingDir  = scriptPath.substr(0, scriptPath.rfind('/'));
-
-serverPort = server.getListen();
-
-std::map<std::string,std::string>::const_iterator ctIt = request.headers.find("Content-Type");
-contentType = (ctIt != request.headers.end()) ? ctIt->second : "";
-for (std::map<std::string,std::string>::const_iterator h = request.headers.begin(); h != request.headers.end(); ++h)
-{
-	if (h->first == "Content-Type" || h->first == "Content-Length")
-		continue;
-	std::string key = "HTTP_";
-	for (size_t i = 0; i < h->first.size(); i++)
-		key += (h->first[i] == '-') ? '_' : toupper(h->first[i]);
-	httpHeaders[key] = h->second;
-}
 }
 
 int Cgi::execute(std::string &response)
@@ -183,7 +183,7 @@ char** Cgi::buildEnv()
 	return env;
 }
 
-Location findLocation(const std::string& uri, ServerConfig& server)
+Location findLocation(std::string& uri, ServerConfig& server)
 {
 	std::vector<Location> locations = server.getLocations();
 	Location bestMatch;
