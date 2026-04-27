@@ -33,6 +33,9 @@ std::vector<ServerConfig> argsToServerConfigs(int ac, char** av)
 
 void	configWebServers(std::vector<ServerConfig>& webserv, Data& data)
 {
+	data.servers.reserve(1024);
+	data.clients.reserve(1024);
+	data.fdPool.reserve(1024);
 	for (size_t i = 0; i < webserv.size(); i++)
 		data.servers.push_back(new Server(webserv[i]));
 }
