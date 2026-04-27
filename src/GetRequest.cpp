@@ -15,10 +15,10 @@ GetRequest::~GetRequest() {}
 
 std::string	GetRequest::response(const ServerConfig& config, const ParsedData& data)
 {
+	//TODO: findLocation();
 	Location location = config.getLocations()[0];
 	responseGetRequest	responseData = initResponse(location, data);
 
-	std::cout <<  "TRYING TO GET " << responseData.uri << '\n';
 	if (isGoodPath(responseData) == true)
 	{
 		if (isDirectory(responseData) == false || findIndexPage(location, responseData))
@@ -34,7 +34,6 @@ responseGetRequest	GetRequest::initResponse(Location& location, const ParsedData
 	responseGetRequest	 response;
 	
 	response.root = location.getRoot() + "/";
-	std::cout << "ROOT=[" << response.root << "]\n";
 	response.protocol = "HTTP/1.0";
 	response.server = "webserv";
 	response.successCode = 200;
@@ -43,13 +42,11 @@ responseGetRequest	GetRequest::initResponse(Location& location, const ParsedData
 	response.listDirectory = false;
 	response.autoIndex = location.getAutoindex();
 	response.uri = data.uri;
-	response.path = location.getRoot();
-	std::cout << response.uri << ":" << response.path << '\n';
-	if (data.uri != response.root)
-		response.path += data.uri;
+	response.path = location.getRoot() + data.uri;
 	return response;
 }
 
+//TODO: map extension init webserv better opti
 void	GetRequest::checkExtension(responseGetRequest& response)
 {
 	std::map<std::string, std::string>	map = mapExtension();
@@ -87,7 +84,6 @@ std::string	GetRequest::generateResponse(const ServerConfig& config, responseGet
 		std::map<int, std::string>		errorMap = config.getErrorPage();
 		std::string	errorPage = errorMap[responseData.successCode];
 		responseData.path = "./" + errorPage;
-		std::cout << "Serve: " << responseData.path << '\n';
 		serveFile(responseData);
 	}
 	time_t	t = time(NULL);
@@ -110,18 +106,14 @@ std::string	GetRequest::generateResponse(const ServerConfig& config, responseGet
 		response += "Location: " + responseData.uri + "/" + EOL;
 	response += "Connection: close" + EOL + EOL
 		+ responseData.content;
+	#ifdef DEBUG
+	std::cout << "response:\n" << response << '\n';
+#endif
 	return response;
 }
 
 bool	GetRequest::isGoodPath(responseGetRequest& responseData)
 {
-	std::cout << "find :" << responseData.root << " in " << responseData.uri << '\n';
-	if (responseData.root == responseData.uri)
-	{
-		std::cout << "ITIS\n";
-		responseData.successCode = 403;
-		return false;
-	}
 	if (access(responseData.path.c_str(), F_OK) < 0)
 	{
 		responseData.successCode = 404;
@@ -137,11 +129,8 @@ bool	GetRequest::isGoodPath(responseGetRequest& responseData)
 
 bool	GetRequest::isDirectory(responseGetRequest& responseData)
 {
-	if (responseData.path.find_last_of("/") + 1 == responseData.path.size())
-	{
-		std::cout << "_isdir\n";
+	if (*responseData.path.rbegin() == '/')
 		return true;
-	}
 
 	struct stat sb;
 	if (stat(responseData.path.c_str(), &sb) < 0)
@@ -158,22 +147,28 @@ bool	GetRequest::isRedirect(const responseGetRequest& responseData)
 	return false;
 }
 
-//TODO: HANDLE REDIRECT 301 FIXXXXX
 void	GetRequest::serveFile(responseGetRequest& responseData)
 {
 	if (responseData.successCode != 200)
 		return ;
+
+	static const int BUFFER_SIZE = 65536;
+
 	int	fd = open(responseData.path.c_str(), O_RDONLY);
 	if (fd < 0)
 		responseData.successCode = 403;
 	else
 	{
-		char	buffer[1024];
+		char	buffer[BUFFER_SIZE];
+		struct stat sb;
+
+		if (stat(responseData.path.c_str(), &sb) > 0 && sb.st_size > 0)
+			responseData.content.reserve(sb.st_size);
 
 		checkExtension(responseData);
 		while (1)
 		{
-			int readData = read(fd, buffer, 1024);
+			int readData = read(fd, buffer, BUFFER_SIZE);
 			if (readData < 0)
 			{
 				responseData.successCode = 500;
@@ -182,10 +177,10 @@ void	GetRequest::serveFile(responseGetRequest& responseData)
 			else if (readData == 0)
 				break ;
 			responseData.content.append(buffer, readData);
-			responseData.contentLength += readData;
 		}
+		close(fd);
+		responseData.contentLength = responseData.content.size();
 	}
-	close(fd);
 }
 
 void	GetRequest::listDirectory(responseGetRequest& responseData)
@@ -245,6 +240,7 @@ bool	GetRequest::findIndexPage(Location& location, responseGetRequest& responseD
 	return false;
 }
 
+//TODO: init webserv
 std::string	GetRequest::getMessageCode(int code)
 {
 	if (code == 200)
