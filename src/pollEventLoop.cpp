@@ -133,6 +133,7 @@ void eventsHandler(Data& data)
 					|| serverEventHandler(data, data.fdPool[i]) == HANDLER_DISCONNECT)
 				{
 					shutDownServers(data.servers);
+					std::vector<pollfd>().swap(data.fdPool);
 					exit(EXIT_FAILURE);
 				}
 			}
@@ -170,6 +171,7 @@ void pollEventsLoop(Data& data)
 			else
 				std::cerr << "Fatal Error: poll():" << strerror(errno) << ", exit\n";
 			shutDownServers(data.servers);
+			std::vector<pollfd>().swap(data.fdPool);
 			exit(EXIT_FAILURE);
 		}
 		if (status == 0)
