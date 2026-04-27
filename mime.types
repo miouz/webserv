@@ -12,7 +12,6 @@
     text/vnd.sun.j2me.app-descriptor                 jad
     text/vnd.wap.wml                                 wml
     text/x-component                                 htc
-
     image/avif                                       avif
     image/png                                        png
     image/svg+xml                                    svg svgz
@@ -58,6 +57,8 @@
     application/x-makeself                           run
     application/x-perl                               pl pm
     application/x-pilot                              prc pdb
+    application/x-php                                php
+    application/x-py                                 py
     application/x-rar-compressed                     rar
     application/x-redhat-package-manager             rpm
     application/x-sea                                sea

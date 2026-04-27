@@ -46,7 +46,6 @@ responseGetRequest	GetRequest::initResponse(Location& location, const ParsedData
 	return response;
 }
 
-//TODO: map extension init webserv better opti
 void	GetRequest::checkExtension(responseGetRequest& response)
 {
 	std::map<std::string, std::string>	map = mapExtension();
@@ -240,7 +239,6 @@ bool	GetRequest::findIndexPage(Location& location, responseGetRequest& responseD
 	return false;
 }
 
-//TODO: init webserv
 std::string	GetRequest::getMessageCode(int code)
 {
 	if (code == 200)
