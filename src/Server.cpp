@@ -36,6 +36,7 @@ void Server::closeServer()
 		clients_[i] = NULL;
 	}
 	clients_.clear();
+	std::vector<Client*>().swap(clients_);
 	// avoid double close
 	if (sockFd_ != -1)
 	{
