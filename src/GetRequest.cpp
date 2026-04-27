@@ -21,7 +21,7 @@ std::string	GetRequest::response(const ServerConfig& config, const ParsedData& d
 	std::cout <<  "TRYING TO GET " << responseData.uri << '\n';
 	if (isGoodPath(responseData) == true)
 	{
-		if (isDirectory(data.uri) == false || findIndexPage(location, responseData))
+		if (isDirectory(responseData) == false || findIndexPage(location, responseData))
 			serveFile(responseData);
 		else
 			listDirectory(responseData);
@@ -84,7 +84,6 @@ std::string	GetRequest::generateResponse(const ServerConfig& config, responseGet
 {
 	if (responseData.successCode != 200)
 	{
-		std::cout << "SERVE ERROR\n";
 		std::map<int, std::string>		errorMap = config.getErrorPage();
 		std::string	errorPage = errorMap[responseData.successCode];
 		responseData.path = "./" + errorPage;
@@ -107,6 +106,8 @@ std::string	GetRequest::generateResponse(const ServerConfig& config, responseGet
 		+ "Content-type: " + responseData.contentType + EOL;
 	if (responseData.listDirectory == false)
 		response += "Content-length: " + ssContentLen.str() + EOL;
+	if (isRedirect(responseData))
+		response += "Location: " + responseData.uri + "/" + EOL;
 	response += "Connection: close" + EOL + EOL
 		+ responseData.content;
 	return response;
@@ -134,15 +135,34 @@ bool	GetRequest::isGoodPath(responseGetRequest& responseData)
 	return true;
 }
 
-bool	GetRequest::isDirectory(const std::string& uri)
+bool	GetRequest::isDirectory(responseGetRequest& responseData)
 {
-	if (uri.find_last_of("/") + 1 == uri.size())
+	if (responseData.path.find_last_of("/") + 1 == responseData.path.size())
+	{
+		std::cout << "_isdir\n";
+		return true;
+	}
+
+	struct stat sb;
+	if (stat(responseData.path.c_str(), &sb) < 0)
+		return false;
+	if (S_ISDIR(sb.st_mode) == true)
+		responseData.successCode = 301;
+	return false;
+}
+
+bool	GetRequest::isRedirect(const responseGetRequest& responseData)
+{
+	if (responseData.successCode == 301)
 		return true;
 	return false;
 }
 
+//TODO: HANDLE REDIRECT 301 FIXXXXX
 void	GetRequest::serveFile(responseGetRequest& responseData)
 {
+	if (responseData.successCode != 200)
+		return ;
 	int	fd = open(responseData.path.c_str(), O_RDONLY);
 	if (fd < 0)
 		responseData.successCode = 403;
@@ -229,13 +249,15 @@ std::string	GetRequest::getMessageCode(int code)
 {
 	if (code == 200)
 		return "OK";
+	if (code == 301)
+		return "Moved Permanently";
 	if (code == 400)
 		return "Bad Request";
 	if (code == 403)
 		return "Forbidden";
 	if (code == 404)
 		return "Not Found";
-	return "UNKOWN";
+	return "UNKNOWN";
 }
 
 std::string GetRequest::formatHttpDate(time_t t)

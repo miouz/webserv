@@ -34,7 +34,8 @@ class GetRequest
 		static std::string generateResponse(const ServerConfig&, responseGetRequest&);
 		static std::string getMessageCode(int);
 		static bool	isGoodPath(responseGetRequest&);
-		static bool	isDirectory(const std::string&);
+		static bool	isDirectory(responseGetRequest&);
+		static bool	isRedirect(const responseGetRequest&);
 		static void	serveFile(responseGetRequest&);
 		static void	listDirectory(responseGetRequest&);
 		static bool	findIndexPage(Location&, responseGetRequest&);
