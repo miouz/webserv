@@ -14,6 +14,9 @@
 #include <algorithm>
 #include <vector>
 #include <sys/types.h>
+#include <signal.h>
+
+extern volatile sig_atomic_t gStop;
 
 enum HandlerResult
 {
@@ -28,6 +31,7 @@ typedef struct Data
 	std::vector<pollfd>		fdPool;
 }	Data;
 
+void initSignals();
 std::vector<ServerConfig>	argsToServerConfigs(int ac, char** av);
 void						configWebServers(std::vector<ServerConfig>& webserv, Data& data);
 void						setUpServers(Data& data);
