@@ -5,6 +5,7 @@ int main(int argc, char** argv)
 	Data data;
 
 	try {
+		initSignals();
 		std::vector<ServerConfig> webserv = argsToServerConfigs(argc, argv);
 		configWebServers(webserv, data);
 		setUpServers(data);
@@ -14,6 +15,5 @@ int main(int argc, char** argv)
 		exit(EXIT_FAILURE);
 	}
 	pollEventsLoop(data);
-	shutDownServers(data.servers);
 	return EXIT_SUCCESS;
 }

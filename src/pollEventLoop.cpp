@@ -1,5 +1,6 @@
 #include "webserv.hpp"
 
+
 /**
  * @brief it loops on each Client to check if is timeout, then try to disconnect them and free their resources
  * @waning it catches each disconnect error locally in order to continue on next Client
@@ -164,7 +165,10 @@ void pollEventsLoop(Data& data)
 		int status = poll(data.fdPool.data(), data.fdPool.size(), POLL_TIMEOUT);
 		if (status < 0)
 		{
-			std::cerr << "Fatal Error: poll():" << strerror(errno) << ", exit\n";
+			if (gStop == true || errno == EINTR)
+				std::cout << "\nCleaning resources and exit\n";
+			else
+				std::cerr << "Fatal Error: poll():" << strerror(errno) << ", exit\n";
 			shutDownServers(data.servers);
 			exit(EXIT_FAILURE);
 		}
