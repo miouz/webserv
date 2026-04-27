@@ -13,6 +13,7 @@ int main(int argc, char** argv)
 		std::cerr<< "Error Fatal: " << e.what() << "\n";
 		shutDownServers(data.servers);
 		std::vector<pollfd>().swap(data.fdPool);
+		std::vector<Client*>().swap(data.clients);
 		exit(EXIT_FAILURE);
 	}
 	pollEventsLoop(data);
