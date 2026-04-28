@@ -74,7 +74,7 @@ Cgi	&Cgi::operator=(Cgi const &copy)
 	}
 }
 
-int Cgi::execute(std::string &response)
+int Cgi::execute(int& cgiFd)
 {
 	int      pipein[2];
 	int      pipeout[2];
@@ -113,24 +113,8 @@ int Cgi::execute(std::string &response)
 
 	int exitStatus;
 
-	response = readAll(pipeout[0]);
-	close(pipeout[0]);
-	waitpid(pid, &exitStatus, 0);
-
-	if (WIFEXITED(exitStatus) && WEXITSTATUS(exitStatus) == 0)
-		return (200);
+	cgiFd = pipeout[0];
 	return (500);
-}
-
-std::string readAll(int fd)
-{
-	std::string content;
-	char        buffer[4096];
-	ssize_t     bytes;
-
-	while ((bytes = read(fd, buffer, sizeof(buffer))) > 0)
-		content.append(buffer, bytes);
-	return content;
 }
 
 void	Cgi::execChild(char** env, int* pipein, int*pipeout)

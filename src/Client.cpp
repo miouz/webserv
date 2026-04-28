@@ -89,7 +89,22 @@ void Client::updateLastActivityTime()
  */
 void Client::buildResponse()
 {
-	bufferOut_ = GetRequest::response(server_.getServerConfig(), request_.getData());
+	if (request_.isCgi())
+	{
+		Cgi cgi(this->server_, this->request_);
+		int i = cgi.execute(this->cgiFd, this->cgiPid);
+		close(pipeout[0]);
+		waitpid(pid, &exitStatus, 0);
+
+	if (WIFEXITED(exitStatus) && WEXITSTATUS(exitStatus) == 0)
+		return (200);
+		server errors with i 
+
+	}
+	else 
+	{
+			
+	}
 }
 
 /**

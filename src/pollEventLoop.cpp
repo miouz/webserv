@@ -53,6 +53,15 @@ HandlerResult clientEventHandler(Data& data, pollfd& fd, Client* client)
 
 	if (fd.revents & POLLIN)
 	{
+		if (fd is cgi)
+			{
+				feed buffer out from pipe
+				if finish read
+					build cgi response
+				fd = POLLOUT;
+			}
+	
+		if (fd is request)
 		char buff[READ_BUFF_SIZE] = {0};
 		ssize_t bytesRead = recv(client->getFd(), buff, READ_BUFF_SIZE, 0);
 

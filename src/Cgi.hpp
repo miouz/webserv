@@ -3,10 +3,10 @@
 # include <string>
 # include <map>
 # include <vector>
+# include "RequestParser.hpp"
 
 // Forward declarations — full definitions are only needed in Cgi.cpp
 class ServerConfig;
-class ParsedData;
 
 class Cgi
 {
