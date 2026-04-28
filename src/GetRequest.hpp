@@ -27,9 +27,7 @@ class GetRequest
 		~GetRequest();
 		static responseGetRequest	initResponse(Location&, const ParsedData&);
 		static std::string	generateMessageResponse(responseGetRequest&);
-		static size_t	checkLength(int);
 		static void	checkExtension(responseGetRequest&);
-		static void	checkSize(std::string&);
 		static std::map<std::string, std::string>	mapExtension();
 		static std::string generateResponse(const ServerConfig&, responseGetRequest&);
 		static std::string getMessageCode(int);
@@ -40,6 +38,6 @@ class GetRequest
 		static void	listDirectory(responseGetRequest&);
 		static bool	findIndexPage(Location&, responseGetRequest&);
 
-		static std::string	formatHttpDate(time_t t);
-		static std::string	FormatFileDate(time_t t);
+		static std::string	formatHttpDate(time_t);
+		static std::string	FormatFileDate(time_t);
 };
