@@ -1,5 +1,28 @@
 #include  "webserv.hpp"
 
+volatile sig_atomic_t gStop;
+
+void parentSignalHandler(int signal)
+{
+	if (signal == SIGINT)
+		gStop = true;
+}
+
+void initSignals()
+{
+	struct sigaction sa;
+	struct sigaction sa_sigpipe;
+
+	sigemptyset(&sa.sa_mask);
+	sigemptyset(&sa_sigpipe.sa_mask);
+	sa.sa_flags = 0;
+	sa_sigpipe.sa_flags = 0;
+	sa.sa_handler = parentSignalHandler;
+	sa_sigpipe.sa_handler = SIG_IGN;
+	if ( sigaction(SIGINT, &sa, NULL) == RETURN_ERROR)
+		throw std::runtime_error(std::string("can't set up signals: ") + strerror(errno));
+}
+
 std::vector<ServerConfig> argsToServerConfigs(int ac, char** av)
 {
 	if (ac != 2)

@@ -1,5 +1,6 @@
 #include "webserv.hpp"
 
+
 /**
  * @brief it loops on each Client to check if is timeout, then try to disconnect them and free their resources
  * @waning it catches each disconnect error locally in order to continue on next Client
@@ -90,11 +91,16 @@ HandlerResult serverEventHandler(Data& data, pollfd& fd)
 	Server* server = findServer(fd.fd, data.servers);
 	if (server)
 	{
-		Client* client = server->acceptClient();
-		data.clients.push_back(client);
-		pollfd clientFd = fdToPollfdWithStatus(client->getFd(), POLLIN);
-		data.fdPool.push_back(clientFd);
-		return HANDLER_OK;
+		while (1)
+		{
+			Client* client = server->acceptClient();
+			//accept() return -1 but not error
+			if (client == NULL)
+				return HANDLER_OK;
+			data.clients.push_back(client);
+			pollfd clientFd = fdToPollfdWithStatus(client->getFd(), POLLIN);
+			data.fdPool.push_back(clientFd);
+		}
 	}
 	return HANDLER_DISCONNECT;
 }
@@ -132,6 +138,8 @@ void eventsHandler(Data& data)
 					|| serverEventHandler(data, data.fdPool[i]) == HANDLER_DISCONNECT)
 				{
 					shutDownServers(data.servers);
+					std::vector<pollfd>().swap(data.fdPool);
+					std::vector<Client*>().swap(data.clients);
 					exit(EXIT_FAILURE);
 				}
 			}
@@ -164,8 +172,13 @@ void pollEventsLoop(Data& data)
 		int status = poll(data.fdPool.data(), data.fdPool.size(), POLL_TIMEOUT);
 		if (status < 0)
 		{
-			std::cerr << "Fatal Error: poll():" << strerror(errno) << ", exit\n";
+			if (gStop == true || errno == EINTR)
+				std::cout << "\nCleaning resources and exit\n";
+			else
+				std::cerr << "Fatal Error: poll():" << strerror(errno) << ", exit\n";
 			shutDownServers(data.servers);
+			std::vector<pollfd>().swap(data.fdPool);
+			std::vector<Client*>().swap(data.clients);
 			exit(EXIT_FAILURE);
 		}
 		if (status == 0)

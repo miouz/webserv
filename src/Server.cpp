@@ -36,6 +36,7 @@ void Server::closeServer()
 		clients_[i] = NULL;
 	}
 	clients_.clear();
+	std::vector<Client*>().swap(clients_);
 	// avoid double close
 	if (sockFd_ != -1)
 	{
@@ -64,7 +65,11 @@ Client* Server::acceptClient()
 	socklen_t len = sizeof(addr);
 	int fd = accept(sockFd_, (struct sockaddr*)&addr, &len);
 	if (fd == RETURN_ERROR)
+	{
+		if (errno == EWOULDBLOCK || errno == EAGAIN)
+			return NULL;
 		throw std::runtime_error(std::string("can't accept new client: ") + std::strerror(errno));
+	}
 	if (fcntl(fd, F_SETFL, O_NONBLOCK) == RETURN_ERROR
 		|| fcntl(fd, F_SETFD, FD_CLOEXEC) == RETURN_ERROR)
 	{
