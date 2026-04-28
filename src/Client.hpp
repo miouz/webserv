@@ -15,6 +15,7 @@
 #include <ctime>
 #include <vector>
 #include "RequestParser.hpp"
+#include "GetRequest.hpp"
 
 #define RETURN_ERROR -1
 #define CLIENT_TIMEOUT_SECONDES 30
@@ -35,6 +36,7 @@ class Client
 	Server&			server_;
 	sockaddr_in		address_;
 	std::string		bufferOut_;
+	size_t			sent_;
 	clientStatus	status_;
 	time_t			lastActivityTime_;
 	RequestParser	request_;

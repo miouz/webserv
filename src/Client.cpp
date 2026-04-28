@@ -10,7 +10,8 @@
  * @param addr client's address
  * @param creationTime client's creationTime by server
  */
-Client::Client(int fd, Server& server, sockaddr_in& addr, time_t& creationTime): fd_(fd), server_(server), address_(addr), status_(CONNECTED), lastActivityTime_(creationTime) { }
+Client::Client(int fd, Server& server, sockaddr_in& addr, time_t& creationTime): fd_(fd), server_(server), 
+	address_(addr),sent_(0), status_(CONNECTED), lastActivityTime_(creationTime){ }
 
 void Client::closeClient()
 {
@@ -27,7 +28,7 @@ Client::~Client()
 }
 
 Client::Client(const Client& other): fd_(other.fd_), server_(other.server_), address_(other.address_),
-	 bufferOut_(other.bufferOut_), status_(other.status_), lastActivityTime_(other.lastActivityTime_){ }
+	 bufferOut_(other.bufferOut_), sent_(other.sent_), status_(other.status_), lastActivityTime_(other.lastActivityTime_){ }
 
 int Client::getFd() const {return fd_;}
 
@@ -69,7 +70,6 @@ bool Client::isTimeOut()
 	return false;
 }
 
-
 /**
  * @brief this function update the Client's lastActivityTime_ to now
  */
@@ -89,7 +89,7 @@ void Client::updateLastActivityTime()
  */
 void Client::buildResponse()
 {
-
+	bufferOut_ = GetRequest::response(server_.getServerConfig(), request_.getData());
 }
 
 /**
@@ -97,6 +97,16 @@ void Client::buildResponse()
  */
 bool Client::sendResponse()
 {
+	if (sent_ < bufferOut_.size())
+	{
+		ssize_t sent = send(fd_, bufferOut_.c_str() + sent_, bufferOut_.size() - sent_, 0);
+		if (sent >= 0)
+		{
+			sent_ += sent;
+			if (sent_ < bufferOut_.size())
+			return false;
+		}
+	}
 	return true;
 }
 

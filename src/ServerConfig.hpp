@@ -17,9 +17,9 @@ public :
 	ServerConfig &operator=(const ServerConfig &copy);
 	~ServerConfig( void );
 
-	std::vector<Location>		getLocations();
+	const std::vector<Location>&		getLocations() const;
 	int							getListen();
-	std::map<int, std::string>	getErrorPage();
+	const std::map<int, std::string>&	getErrorPage() const;
 	int							getClientMaxBodySize();
 
 	void						print();

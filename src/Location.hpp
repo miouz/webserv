@@ -17,15 +17,15 @@ public :
 	~Location( void );
 	Location &operator=(Location const &copy);
 
-	std::string							getPath();
-	bool*								getMethods();
-	std::string							getRoot();
-	std::vector<std::string>			getIndex();
-	bool								getAutoindex();
-	std::pair<int,std::string>			getReturn();
-	std::string							getUploadStore();
-	std::map<std::string,std::string>	getCgiExtension();
-	void								print();
+	const std::string&							getPath() const;
+	const bool*									getMethods() const;
+	const std::string&							getRoot() const;
+	const   std::vector<std::string>&			getIndex() const;
+	bool										getAutoindex() const;
+	const   std::pair<int,std::string>&			getReturn() const;
+	const   std::string&						getUploadStore() const;
+	const   std::map<std::string,std::string>&	getCgiExtension() const;
+	void										print() const;
 
 
 private :

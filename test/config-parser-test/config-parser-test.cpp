@@ -103,7 +103,7 @@ static void test_location_methods_get_only(void)
 {
     SUITE("Location — methods GET only");
     Config c("test/config-parser-test/location-methods-get-only.txt");
-    bool* m = c.getServers()[0].getLocations()[0].getMethods();
+    const bool* m = c.getServers()[0].getLocations()[0].getMethods();
     ASSERT_EQ("GET allowed",    true,  m[0]);
     ASSERT_EQ("POST denied",   false, m[1]);
     ASSERT_EQ("DELETE denied", false, m[2]);
@@ -114,7 +114,7 @@ static void test_location_methods_all(void)
 {
     SUITE("Location — methods GET POST DELETE");
     Config c("test/config-parser-test/location-methods-all.txt");
-    bool* m = c.getServers()[0].getLocations()[0].getMethods();
+    const bool* m = c.getServers()[0].getLocations()[0].getMethods();
     ASSERT_EQ("GET",    true, m[0]);
     ASSERT_EQ("POST",   true, m[1]);
     ASSERT_EQ("DELETE", true, m[2]);
