@@ -91,11 +91,16 @@ HandlerResult serverEventHandler(Data& data, pollfd& fd)
 	Server* server = findServer(fd.fd, data.servers);
 	if (server)
 	{
-		Client* client = server->acceptClient();
-		data.clients.push_back(client);
-		pollfd clientFd = fdToPollfdWithStatus(client->getFd(), POLLIN);
-		data.fdPool.push_back(clientFd);
-		return HANDLER_OK;
+		while (1)
+		{
+			Client* client = server->acceptClient();
+			//accept() return -1 but not error
+			if (client == NULL)
+				return HANDLER_OK;
+			data.clients.push_back(client);
+			pollfd clientFd = fdToPollfdWithStatus(client->getFd(), POLLIN);
+			data.fdPool.push_back(clientFd);
+		}
 	}
 	return HANDLER_DISCONNECT;
 }
