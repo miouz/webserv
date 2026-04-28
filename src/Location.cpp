@@ -244,50 +244,50 @@ void Location::setCGIE(std::string w, std::ifstream &file)
 		this->unexpectedVariableEndException(word, file);
 }
 
-std::string							Location::getPath()
+ const std::string&							Location::getPath() const
 {
 	return(this->path);
 }
 
-bool*								Location::getMethods()
+const bool*								Location::getMethods() const
 {
 	return(this->methods);
 }
 
-std::string							Location::getRoot()
+const std::string&							Location::getRoot() const
 {
 	return(this->root);
 }
 
-std::vector<std::string>			Location::getIndex()
+const std::vector<std::string>&			Location::getIndex() const
 {
 	return(this->index);
 }
 
-bool								Location::getAutoindex()
+bool								Location::getAutoindex() const
 {
 	return(this->autoindex);
 }
 
-std::pair<int,std::string>			Location::getReturn()
+const std::pair<int,std::string>&			Location::getReturn() const
 {
 	return(this->_return);
 }
 
-std::string							Location::getUploadStore()
+const std::string&							Location::getUploadStore() const
 {
 	return(this->upload_store);
 }
 
-std::map<std::string,std::string>	Location::getCgiExtension()
+const std::map<std::string,std::string>&	Location::getCgiExtension() const
 {
 	return(this->cgi_extension);
 }
 
-void	Location::print()
+void	Location::print() const
 {
-	long unsigned int								i;
-	std::map<std::string, std::string>::iterator	itstr;
+	long unsigned int									i;
+	std::map<std::string, std::string>::const_iterator	itstr;
 
 
 	std::cout << path << "\n";
