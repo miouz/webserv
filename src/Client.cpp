@@ -89,7 +89,7 @@ void Client::updateLastActivityTime()
  */
 void Client::buildResponse()
 {
-	bufferOut_ = GetRequest::response(server_.getServerConfig(), request_.getData());
+	bufferOut_ = Request::response(server_.getServerConfig(), request_.getData());
 }
 
 /**
