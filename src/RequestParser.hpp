@@ -41,7 +41,7 @@ class RequestParser
 	public:
 		RequestParser();
 		~RequestParser();
-		void	feed(std::string&);
+		void	feed(const std::string&);
 		bool	isComplete() const;
 		const ParsedData&	getData() const;
 };

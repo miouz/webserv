@@ -1,39 +1,24 @@
-#include "Config.hpp"
+#ifndef POSTREQUEST_HPP
+# define POSTREQUEST_HPP
+
 #include "Location.hpp"
 #include "RequestParser.hpp"
-
-enum METHODS
-{
-	GET,
-	POST,
-	DELETE
-};
-
-struct responsePostRequest
-{
-	std::string	root;
-	std::string	protocol;
-	std::string	uri;
-	int	successCode;
-	std::string	server;
-	std::string	path;
-	std::string	contentType;
-	std::string	content;
-	size_t	contentLength;
-};
+#include "Request.hpp"
 
 class PostRequest
 {
 	public:
-		static std::string	response(const ServerConfig&, const ParsedData&);
+		static void	postResponse(const ServerConfig&, responseRequest&, const ParsedData&);
 	private:
 		PostRequest();
 		~PostRequest();
-		static responsePostRequest	initResponse(Location&, const ParsedData&);
-		static std::string generateResponse(const ServerConfig&, responsePostRequest&);
+		static responseRequest	initResponse(Location&, const ParsedData&);
+		static std::string generateResponse(const ServerConfig&, responseRequest&);
 
 		static bool	isUpload(const std::string&);
-		static bool	checkData(const std::string&, const std::string&);
+		static bool	checkData(const ParsedData&, const ServerConfig&, responseRequest&);
 		static bool	isMethodAllowed(const std::string&, const Location&);
-		static void	createFile(const std::string&, const std::string&);
+		static void	createFile(responseRequest&, const std::string&);
 };
+
+#endif

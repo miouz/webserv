@@ -1,5 +1,6 @@
 #include "Request.hpp"
 #include "GetRequest.hpp"
+#include "PostRequest.hpp"
 #include <unistd.h>
 #include <stdlib.h>
 #include <cstdlib>
@@ -36,6 +37,7 @@ std::string	Request::response(const ServerConfig& config, const ParsedData& data
 						GetRequest::getResponse(responseData, location);
 						break ;
 					case POST:
+						PostRequest::postResponse(config, responseData, data);
 						break ;
 					case DELETE:
 						break ;

@@ -76,6 +76,7 @@ void	ServerConfig::init()
     this->listen = -1;
 	this->client_max_body_size = -1;
 	this->error_page[301] = "./errors/301.html";
+	this->error_page[400] = "./errors/400.html";
 	this->error_page[403] = "./errors/403.html";
 	this->error_page[404] = "./errors/404.html";
 	this->error_page[500] = "./errors/500.html";
@@ -192,7 +193,7 @@ int							ServerConfig::getListen()
 {
 	return (this->listen);
 }
-int							ServerConfig::getClientMaxBodySize()
+int							ServerConfig::getClientMaxBodySize() const
 {
 	return (this->client_max_body_size);
 }

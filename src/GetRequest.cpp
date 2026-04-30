@@ -136,7 +136,6 @@ void	GetRequest::serveFile(responseRequest& responseData)
 			if (readData < 0)
 			{
 				responseData.successCode = 500;
-				std::cout << "Trying to read a dir\n";
 				break ;
 			}
 			else if (readData == 0)
