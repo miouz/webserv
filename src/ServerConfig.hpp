@@ -20,6 +20,7 @@ public :
 	int							getListen();
 	const std::map<int, std::string>&	getErrorPage() const;
 	int							getClientMaxBodySize();
+	std::string    resolvePath(const std::string uri) const;
 	Location findLocation(std::string&) const;
 
 	void						print();
