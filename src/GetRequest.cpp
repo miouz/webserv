@@ -75,7 +75,6 @@ void	GetRequest::listDirectory(responseRequest& responseData)
 
 bool	GetRequest::isDirectory(responseRequest& responseData)
 {
-	std::cout << "is a dir ?\n";
 	if (*responseData.path.rbegin() == '/')
 		return true;
 
@@ -84,7 +83,6 @@ bool	GetRequest::isDirectory(responseRequest& responseData)
 		return false;
 	if (S_ISDIR(sb.st_mode) == true)
 		responseData.successCode = 301;
-	std::cout << "ITSADIR\n";
 	return false;
 }
 
