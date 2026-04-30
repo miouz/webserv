@@ -91,7 +91,16 @@ void Client::buildResponse()
 {
 	ParsedData	data = request_.getData();
 	ServerConfig config = server_.getServerConfig();
+	std::string	resolvedUri = config.resolvePath(data.uri);
+	if (resolvedUri == "/..")
+		data.code = 403;
 	Location location = config.findLocation(data.uri);
+	if (location.getPath().empty())
+		data.code = 403;
+	#ifdef DEBUG
+		std::cout << "resolvePath:" << resolvedUri << '\n';
+		std::cout << "Location:" << location.getPath() << '\n';
+	#endif
 	bufferOut_ = Request::response(config, data, location);
 }
 

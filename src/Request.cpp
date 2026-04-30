@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <sys/stat.h>
+#include <iostream>
 
 
 Request::Request() {}
@@ -16,27 +17,29 @@ std::string	Request::response(const ServerConfig& config, const ParsedData& data
 	responseRequest	responseData = initResponse(location, data);
 	static const int	NBR_METHODS = 3;
 	int	method;
-	
-	checkExtension(responseData);
-	if (isCgi(responseData.extension, location) == false)
+	if (responseData.successCode == 200)
 	{
-		std::string	methods[NBR_METHODS] = {"GET", "POST", "DELETE"};
-		for (method = GET; method < NBR_METHODS; method++)
-			if (methods[method] == data.method)
-				break ;
-		if (isMethodAllowed(method, location) == false)
-			responseData.successCode = 403;
-		else
+		checkExtension(responseData);
+		if (isCgi(responseData.extension, location) == false)
 		{
-			switch (method)
+			std::string	methods[NBR_METHODS] = {"GET", "POST", "DELETE"};
+			for (method = GET; method < NBR_METHODS; method++)
+				if (methods[method] == data.method)
+					break ;
+			if (isMethodAllowed(method, location) == false)
+				responseData.successCode = 403;
+			else
 			{
-				case GET:
-					GetRequest::getResponse(responseData, location);
-					break ;
-				case POST:
-					break ;
-				case DELETE:
-					break ;
+				switch (method)
+				{
+					case GET:
+						GetRequest::getResponse(responseData, location);
+						break ;
+					case POST:
+						break ;
+					case DELETE:
+						break ;
+				}
 			}
 		}
 	}
@@ -55,11 +58,11 @@ bool	Request::isMethodAllowed(int method, const Location& location)
 responseRequest	Request::initResponse(const Location& location, const ParsedData& data)
 {
 	responseRequest	 response;
-	
+
 	response.root = location.getRoot() + "/";
 	response.protocol = "HTTP/1.0";
 	response.server = "webserv";
-	response.successCode = 200;
+	response.successCode = data.code;
 	response.contentType = "application/octet-stream";
 	response.contentLength = 0;
 	response.listDirectory = false;
@@ -75,9 +78,11 @@ std::string	Request::generateResponse(const ServerConfig& config, responseReques
 	{
 		std::map<int, std::string>		errorMap = config.getErrorPage();
 		std::string	errorPage = errorMap[responseData.successCode];
+		responseData.contentType = "text/html";
 		responseData.path = "./" + errorPage;
-		GetRequest::serveFile(responseData);
 	}
+	if (responseData.listDirectory == false)
+		GetRequest::serveFile(responseData);
 	time_t	t = time(NULL);
 	std::string time = formatHttpDate(t);
 	std::string		EOL("\r\n");
@@ -98,7 +103,7 @@ std::string	Request::generateResponse(const ServerConfig& config, responseReques
 		response += "Location: " + responseData.uri + "/" + EOL;
 	response += "Connection: close" + EOL + EOL
 		+ responseData.content;
-	#ifdef DEBUG
+#ifdef DEBUG
 	std::cout << "response:\n" << response << '\n';
 #endif
 	return response;
@@ -136,13 +141,13 @@ std::string	Request::getMessageCode(int code)
 
 std::string Request::formatHttpDate(time_t t)
 {
-    char buffer[100];
-    std::tm *gmt = std::gmtime(&t);
+	char buffer[100];
+	std::tm *gmt = std::gmtime(&t);
 
-    std::strftime(buffer, sizeof(buffer),
-                  "%a, %d %b %Y %H:%M:%S GMT", gmt);
+	std::strftime(buffer, sizeof(buffer),
+			   "%a, %d %b %Y %H:%M:%S GMT", gmt);
 
-    return buffer;
+	return buffer;
 }
 
 std::map<std::string, std::string> Request::mapExtension()
@@ -151,7 +156,7 @@ std::map<std::string, std::string> Request::mapExtension()
 	std::map<std::string, std::string> 	map;
 	std::string	token;
 	std::string	type;
-	
+
 	while (ifs >> token)
 	{
 		if (token.find("/") != std::string::npos)

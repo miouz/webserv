@@ -1,4 +1,5 @@
 #include "GetRequest.hpp"
+#include <iostream>
 #include <string>
 #include <sys/dir.h>
 #include <sys/stat.h>
@@ -10,12 +11,8 @@
 void	GetRequest::getResponse(responseRequest& responseData, const Location& location)
 {
 	if (isGoodPath(responseData) == true)
-	{
-		if (isDirectory(responseData) == false || findIndexPage(location, responseData))
-			serveFile(responseData);
-		else
+		if (isDirectory(responseData) == true && findIndexPage(location, responseData) == false)
 			listDirectory(responseData);
-	}
 }
 
 bool	GetRequest::findIndexPage(const Location& location, responseRequest& responseData)
@@ -78,6 +75,7 @@ void	GetRequest::listDirectory(responseRequest& responseData)
 
 bool	GetRequest::isDirectory(responseRequest& responseData)
 {
+	std::cout << "is a dir ?\n";
 	if (*responseData.path.rbegin() == '/')
 		return true;
 
@@ -86,6 +84,7 @@ bool	GetRequest::isDirectory(responseRequest& responseData)
 		return false;
 	if (S_ISDIR(sb.st_mode) == true)
 		responseData.successCode = 301;
+	std::cout << "ITSADIR\n";
 	return false;
 }
 
@@ -120,9 +119,6 @@ bool	GetRequest::isGoodPath(responseRequest& responseData)
 
 void	GetRequest::serveFile(responseRequest& responseData)
 {
-	if (responseData.successCode != 200)
-		return ;
-
 	static const int BUFFER_SIZE = 65536;
 
 	int	fd = open(responseData.path.c_str(), O_RDONLY);
@@ -142,6 +138,7 @@ void	GetRequest::serveFile(responseRequest& responseData)
 			if (readData < 0)
 			{
 				responseData.successCode = 500;
+				std::cout << "Trying to read a dir\n";
 				break ;
 			}
 			else if (readData == 0)
