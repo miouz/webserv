@@ -7,7 +7,7 @@
 #include <ctime>
 #include <fcntl.h>
 
-void	GetRequest::getResponse(responseRequest& responseData, Location& location)
+void	GetRequest::getResponse(responseRequest& responseData, const Location& location)
 {
 	if (isGoodPath(responseData) == true)
 	{
@@ -18,7 +18,7 @@ void	GetRequest::getResponse(responseRequest& responseData, Location& location)
 	}
 }
 
-bool	GetRequest::findIndexPage(Location& location, responseRequest& responseData)
+bool	GetRequest::findIndexPage(const Location& location, responseRequest& responseData)
 {
 	if (responseData.autoIndex == false)
 		return false;

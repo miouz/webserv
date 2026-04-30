@@ -1,5 +1,5 @@
 #include "ServerConfig.hpp"
-#include "Config.hpp"
+#include "Location.hpp"
 #include <iostream>
 #include <fstream>
 
@@ -221,4 +221,26 @@ void	ServerConfig::print()
 		i++;
 		std::cout << "\n";
 	}
+}
+
+Location ServerConfig::findLocation(std::string& uri) const
+{
+    std::vector<Location> locations = getLocations();
+    Location bestMatch;
+    size_t bestLen;
+
+    bestLen = 0;
+    for (size_t i = 0; i < locations.size(); i++)
+    {
+        std::string locPath = locations[i].getPath();
+        if (uri.find(locPath) == 0)
+        {
+            if (locPath.size() > bestLen)
+            {
+                bestLen   = locPath.size();
+                bestMatch = locations[i];
+            }
+        }
+    }
+    return bestMatch;
 }

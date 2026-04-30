@@ -11,10 +11,8 @@ Request::Request() {}
 
 Request::~Request() {}
 
-std::string	Request::response(const ServerConfig& config, const ParsedData& data)
+std::string	Request::response(const ServerConfig& config, const ParsedData& data, const Location& location)
 {
-	//TODO: findLocation();
-	Location location = config.getLocations()[0];
 	responseRequest	responseData = initResponse(location, data);
 	static const int	NBR_METHODS = 3;
 	int	method;
@@ -54,7 +52,7 @@ bool	Request::isMethodAllowed(int method, const Location& location)
 	return true;
 }
 
-responseRequest	Request::initResponse(Location& location, const ParsedData& data)
+responseRequest	Request::initResponse(const Location& location, const ParsedData& data)
 {
 	responseRequest	 response;
 	

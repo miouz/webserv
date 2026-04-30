@@ -7,7 +7,7 @@
 class GetRequest
 {
 	public:
-		static void	getResponse(responseRequest&, Location&);
+		static void	getResponse(responseRequest&, const Location&);
 		static void	serveFile(responseRequest&);
 	private:
 		GetRequest();
@@ -17,7 +17,7 @@ class GetRequest
 		static bool	isGoodPath(responseRequest&);
 		static bool	isDirectory(responseRequest&);
 		static void	listDirectory(responseRequest&);
-		static bool	findIndexPage(Location&, responseRequest&);
+		static bool	findIndexPage(const Location&, responseRequest&);
 	
 	//time
 		static std::string FormatFileDate(time_t);

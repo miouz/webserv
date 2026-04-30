@@ -1,7 +1,6 @@
 #ifndef SERVERCONFIG_HPP
 # define SERVERCONFIG_HPP
 
-# include <iostream>
 # include <vector>
 # include "Location.hpp"
 # include <map>
@@ -21,6 +20,7 @@ public :
 	int							getListen();
 	const std::map<int, std::string>&	getErrorPage() const;
 	int							getClientMaxBodySize();
+	Location findLocation(std::string&) const;
 
 	void						print();
 

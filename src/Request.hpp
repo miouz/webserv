@@ -32,13 +32,13 @@ struct responseRequest
 class Request
 {
 	public:
-		static std::string	response(const ServerConfig&, const ParsedData&);
+		static std::string	response(const ServerConfig&, const ParsedData&, const Location&);
 	private:
 		Request();
 		~Request();
 
 		static bool	isMethodAllowed(int, const Location&);
-		static responseRequest	initResponse(Location&, const ParsedData&);
+		static responseRequest	initResponse(const Location&, const ParsedData&);
 		static std::string generateResponse(const ServerConfig&, responseRequest&);
 		static std::string getMessageCode(int);
 		static bool	isRedirect(const responseRequest&);
