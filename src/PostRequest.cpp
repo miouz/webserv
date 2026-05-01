@@ -32,7 +32,7 @@ bool	PostRequest::checkData(const ParsedData& data, const ServerConfig& config, 
 {
 	std::string	prefix = "/upload/";
 	std::string	fileName = data.uri.substr(prefix.size());
-	if (fileName.find('/') != std::string::npos)
+	if (fileName.find('/') != std::string::npos || fileName.empty())
 		return false;
 
 	std::string	file = response.path;
