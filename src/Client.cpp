@@ -78,7 +78,7 @@ std::string& Client::getBufferOut() { return bufferOut_;}
 
 time_t	Client::getLastActivityTime() const { return lastActivityTime_; }
 
-RequestParser& Client::getRequest() { return request_; }
+RequestParser& Client::getParsedRequest() { return parsedRequest_; }
 
 void Client::removeFromServer()
 {
