@@ -37,7 +37,7 @@ std::string	Request::response(const ServerConfig& config, const ParsedData& data
 						GetRequest::getResponse(responseData, location);
 						break ;
 					case POST:
-						PostRequest::postResponse(config, responseData, data);
+						PostRequest::postResponse(config, responseData, data, location);
 						break ;
 					case DELETE:
 						break ;
@@ -76,7 +76,7 @@ responseRequest	Request::initResponse(const Location& location, const ParsedData
 
 std::string	Request::generateResponse(const ServerConfig& config, responseRequest& responseData)
 {
-	if (responseData.successCode != 200)
+	if (responseData.successCode != 200 && responseData.successCode != 201)
 	{
 		std::map<int, std::string>		errorMap = config.getErrorPage();
 		std::string	errorPage = errorMap[responseData.successCode];
@@ -97,14 +97,18 @@ std::string	Request::generateResponse(const ServerConfig& config, responseReques
 		+ " " + ssSuccessCode.str()
 		+ " " + getMessageCode(responseData.successCode) + EOL
 		+ "Server: " + responseData.server + EOL
-		+ "Date: " + time + EOL
-		+ "Content-type: " + responseData.contentType + EOL;
-	if (responseData.listDirectory == false)
-		response += "Content-length: " + ssContentLen.str() + EOL;
+		+ "Date: " + time + EOL;
+	if (responseData.successCode != 201)
+	{
+		response += "Content-type: " + responseData.contentType + EOL;
+		if (responseData.listDirectory == false)
+			response += "Content-length: " + ssContentLen.str() + EOL;
+	}
 	if (isRedirect(responseData))
 		response += "Location: " + responseData.uri + "/" + EOL;
-	response += "Connection: close" + EOL + EOL
-		+ responseData.content;
+	response += "Connection: close" + EOL + EOL;
+	if (responseData.successCode != 201)
+		response += responseData.content;
 #ifdef DEBUG
 	std::cout << "response:\n" << response << '\n';
 #endif

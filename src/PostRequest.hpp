@@ -8,7 +8,7 @@
 class PostRequest
 {
 	public:
-		static void	postResponse(const ServerConfig&, responseRequest&, const ParsedData&);
+		static void	postResponse(const ServerConfig&, responseRequest&, const ParsedData&, const Location&);
 	private:
 		PostRequest();
 		~PostRequest();
@@ -16,7 +16,7 @@ class PostRequest
 		static std::string generateResponse(const ServerConfig&, responseRequest&);
 
 		static bool	isUpload(const std::string&);
-		static bool	checkData(const ParsedData&, const ServerConfig&, responseRequest&);
+		static bool	checkData(const ParsedData&, const ServerConfig&, responseRequest&, const Location&);
 		static bool	isMethodAllowed(const std::string&, const Location&);
 		static void	createFile(responseRequest&, const std::string&);
 };
