@@ -77,7 +77,7 @@ class Client
 	void removeFromServer();
 	bool isTimeOut();
 	void updateLastActivityTime();
-	void buildResponse();
+	void buildResponse(std::vector<pollfd>&);
 	void addCgiFdsToPool(std::vector<pollfd>& fdPool);
 	bool sendResponse();
 	bool cgiWriteBody();

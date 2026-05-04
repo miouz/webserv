@@ -136,21 +136,19 @@ void Client::addCgiFdsToPool(std::vector<pollfd>& fdPool)
 /**
  * @brief [TODO: build request response]
  */
-void Client::buildResponse()
+void Client::buildResponse(std::vector<pollfd>& fdPool)
 {
-	if (request_.isCgi())
+	if ( isCgi(parsedRequest_.getData().uri, server_.getLocations()) == true)
 	{
-		Cgi cgi(this->server_, this->request_);
-		int i = cgi.execute(this->cgiFd, this->cgiPid);
-		close(pipeout[0]);
-		waitpid(pid, &exitStatus, 0);
-
-	if (WIFEXITED(exitStatus) && WEXITSTATUS(exitStatus) == 0)
-		return (200);
-		server errors with i 
-
+		Cgi cgi(server_.getServerConfig(), parsedRequest_.getData());
+		int result = cgi.execute(*this, fdPool);
+		//TODO: request.setErrorCode(result);
 	}
-	else 
+	//TODO: generate response
+	{
+		//request.response();
+	}
+}
 
 /**
  * @brief write body to pipeIn write side for cgi's stdin 
