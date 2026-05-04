@@ -38,7 +38,7 @@ void cleanTimeOutClient(Data& data)
 }
 
 /**
- * @brief [TODO: this function reads partially the result of cgi execution and feed
+ * @brief [TODO: this function reads partially the result of cgi execution
  *          and feed the buffer in order to generate the response]
  *
  * @param data [struct Data]
@@ -51,6 +51,7 @@ HandlerResult clientCgiReadHandler(Data& data, pollfd& fd, Client* client)
 	char buff[READ_BUFF_SIZE] = {0};
 	ssize_t bytesRead = read(fd.fd, buff, READ_BUFF_SIZE);
 
+	//TODO: execution of cgi finished
 	if (bytesRead == 0)
 	{
 		int exitStatus;
@@ -60,24 +61,18 @@ HandlerResult clientCgiReadHandler(Data& data, pollfd& fd, Client* client)
 		std::vector<pollfd>::iterator cgiReadFdInPool = findFdInPool(data.fdPool, fd.fd);
 		data.fdPool.erase(cgiReadFdInPool);
 
-		//TODO: client->getBufferOut() = client->getRequest().response(exitStatus);
-		// if (WIFEXITED(exitStatus) && WEXITSTATUS(exitStatus) == 0)
-		// setErrorCode(200);
+		//TODO: if error put the exitstatus code on request's error code
+		if (WIFEXITED(exitStatus) && WEXITSTATUS(exitStatus) == 0)
+			client->getRequest().getData().code = 200;
+		//TODO: call response
+		//
 		std::vector<pollfd>::iterator clientFdInPool = findFdInPool(data.fdPool, client->getFd());
 		if (clientFdInPool == data.fdPool.end())
 			return HANDLER_DISCONNECT;
 		data.fdPool[clientFdInPool - data.fdPool.begin()].events = POLLOUT;
 	}
-	if (bytesRead > 0)
-		//TODO: feed the Request body buffer
-		// client->getRequest().feed(buff, bytesRead);
-	if (bytesRead == RETURN_ERROR)
-	{
-		//TODO: is it an real error ?
-			//client->getRequest.setErrorCode(500); 
-			//client->getBufferOut = client->getRequest().response();
-		fd.events = POLLOUT;
-	}
+	else if (bytesRead > 0)
+		client->getRequest().getData().body.append(buff, bytesRead);
 	return HANDLER_OK;
 }
 
@@ -108,8 +103,8 @@ HandlerResult clientRecieveHandler(Data& data, pollfd& fd, Client* client)
 	if (bytesRead > 0)
 	{
 		std::string toFeed(buff, bytesRead);
-		client->getParsedRequest().feed(toFeed);
-		if (client->getParsedRequest().isComplete())
+		client->getRequest().feed(toFeed);
+		if (client->getRequest().isComplete())
 		{
 			client->buildResponse(data.fdPool);
 			fd.events = POLLOUT;
@@ -121,7 +116,7 @@ HandlerResult clientRecieveHandler(Data& data, pollfd& fd, Client* client)
 	return HANDLER_OK;
 }
 
-HandlerResult clientSendHandler(Data& data, pollfd& fd, Client* client)
+HandlerResult clientSendHandler(Client* client)
 {
 	bool fullySent = client->sendResponse();
 	if (fullySent)
@@ -161,7 +156,7 @@ HandlerResult clientEventHandler(Data& data, pollfd& fd, Client* client)
 		if (fd.fd == client->getCgiFd()[WRITE])
 			result = clientCgiWriteHandler(data, fd, client);
 		else
-		 	result = clientSendHandler(data, fd, client);
+		 	result = clientSendHandler(client);
 	}
 	return result;
 }

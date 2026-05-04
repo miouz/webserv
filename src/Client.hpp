@@ -49,8 +49,7 @@ class Client
 	size_t			written_;
 	clientStatus	status_;
 	time_t			lastActivityTime_;
-	RequestParser	parsedRequest_;
-	// Request			request_;
+	RequestParser	request_;
 
 	
 	
@@ -69,7 +68,7 @@ class Client
 	void setStatus(clientStatus status);
 	std::string& getBufferOut();
 	time_t	getLastActivityTime() const;
-	RequestParser& getParsedRequest();
+	RequestParser& getRequest();
 
 	void closeCgiReadFd();
 	void closeCgiWriteFd();

@@ -79,7 +79,7 @@ std::string& Client::getBufferOut() { return bufferOut_;}
 
 time_t	Client::getLastActivityTime() const { return lastActivityTime_; }
 
-RequestParser& Client::getParsedRequest() { return parsedRequest_; }
+RequestParser& Client::getRequest() { return request_; }
 
 void Client::removeFromServer()
 {
@@ -150,16 +150,14 @@ void Client::buildResponse(std::vector<pollfd>& fdPool)
 		std::cout << "resolvePath:" << resolvedUri << '\n';
 		std::cout << "Location:" << location.getPath() << '\n';
 	#endif
-	if ( Request::isCgi(parsedRequest_.getData().uri, location) == true)
+	if ( Request::isCgi(data.uri, location) == true)
 	{
-		Cgi cgi(server_.getServerConfig(), parsedRequest_.getData());
+		Cgi cgi(server_.getServerConfig(), data);
 		int result = cgi.execute(*this, fdPool);
-		//TODO: request.setErrorCode(result);
+		data.code = result;
 	}
-	//TODO: generate response
-	{
+	else 
 		bufferOut_ = Request::response(config, data, location);
-	}
 }
 
 /**
@@ -169,7 +167,7 @@ void Client::buildResponse(std::vector<pollfd>& fdPool)
  */
 bool Client::cgiWriteBody()
 {
-	std::string body = parsedRequest_.getData().body;
+	std::string body = request_.getData().body;
 	if (written_ < body.size())
 	{
 		ssize_t written = write(cgiFd_[WRITE], body.c_str() + written_, body.size() - written_);
