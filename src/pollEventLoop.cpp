@@ -37,6 +37,102 @@ void cleanTimeOutClient(Data& data)
 	}
 }
 
+/**
+ * @brief [TODO: this function reads partially the result of cgi execution and feed
+ *          and feed the buffer in order to generate the response]
+ *
+ * @param data [struct Data]
+ * @param fd event's pollfd
+ * @param client pointer to Client
+ * @return return HANDLER_OK to stay connected (NO WAY TO DISCONNECT)
+ */	
+HandlerResult clientCgiReadHandler(Data& data, pollfd& fd, Client* client)
+{
+	char buff[READ_BUFF_SIZE] = {0};
+	ssize_t bytesRead = read(fd.fd, buff, READ_BUFF_SIZE);
+
+	if (bytesRead == 0)
+	{
+		int exitStatus;
+		if (waitpid(client->getCgiPid(), &exitStatus, WNOHANG) == 0)
+			return HANDLER_OK;
+		client->closeCgiReadFd();
+		std::vector<pollfd>::iterator cgiReadFdInPool = findFdInPool(data.fdPool, fd.fd);
+		data.fdPool.erase(cgiReadFdInPool);
+
+		//TODO: client->getBufferOut() = client->getRequest().response(exitStatus);
+		// if (WIFEXITED(exitStatus) && WEXITSTATUS(exitStatus) == 0)
+		// setErrorCode(200);
+		std::vector<pollfd>::iterator clientFdInPool = findFdInPool(data.fdPool, client->getFd());
+		if (clientFdInPool == data.fdPool.end())
+			return HANDLER_DISCONNECT;
+		data.fdPool[clientFdInPool - data.fdPool.begin()].events = POLLOUT;
+	}
+	if (bytesRead > 0)
+		//TODO: feed the Request body buffer
+		// client->getRequest().feed(buff, bytesRead);
+	if (bytesRead == RETURN_ERROR)
+	{
+		//TODO: is it an real error ?
+			//client->getRequest.setErrorCode(500); 
+			//client->getBufferOut = client->getRequest().response();
+		fd.events = POLLOUT;
+	}
+	return HANDLER_OK;
+}
+
+HandlerResult clientCgiWriteHandler(Data& data, pollfd& fd, Client* client)
+{
+	bool fullyWritten = client->cgiWriteBody();
+
+	if(fullyWritten == true)
+	{
+		client->closeCgiWriteFd();
+		std::vector<pollfd>::iterator cgiWriteFdInPool = findFdInPool(data.fdPool, fd.fd);
+		data.fdPool.erase(cgiWriteFdInPool);
+
+		#ifdef DEBUG
+		std::cout << "client fully written on pipe fd " << fd.fd << "\n";
+		#endif
+	}
+	return HANDLER_OK;
+}
+
+HandlerResult clientRecieveHandler(Data& data, pollfd& fd, Client* client)
+{
+	char buff[READ_BUFF_SIZE] = {0};
+
+	ssize_t bytesRead = recv(client->getFd(), buff, READ_BUFF_SIZE, 0);
+	if (bytesRead == 0)
+		return HANDLER_DISCONNECT;
+	if (bytesRead > 0)
+	{
+		std::string toFeed(buff, bytesRead);
+		client->getParsedRequest().feed(toFeed);
+		if (client->getParsedRequest().isComplete())
+		{
+			client->buildResponse(data.fdPool);
+			fd.events = POLLOUT;
+		#ifdef DEBUG
+			std::cout << "\nClient on fd "<<client->getFd() <<  " recieved request:\n" << buff << "\n";
+		#endif
+		}
+	}
+	return HANDLER_OK;
+}
+
+HandlerResult clientSendHandler(Data& data, pollfd& fd, Client* client)
+{
+	bool fullySent = client->sendResponse();
+	if (fullySent)
+	{
+		#ifdef DEBUG
+		std::cout << "response fully sent\n";
+		#endif
+		return HANDLER_DISCONNECT;
+	}
+	return HANDLER_OK;
+}
 
 /**
  * @brief handle client's POLLIN POLLHUP events
