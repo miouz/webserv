@@ -10,8 +10,36 @@
  * @param addr client's address
  * @param creationTime client's creationTime by server
  */
-Client::Client(int fd, Server& server, sockaddr_in& addr, time_t& creationTime): fd_(fd), server_(server), 
-	address_(addr),sent_(0), status_(CONNECTED), lastActivityTime_(creationTime){ }
+Client::Client(int fd, Server& server, sockaddr_in& addr, time_t& creationTime): fd_(fd), cgiPid_(0),
+	server_(server), address_(addr), sent_(0), written_(0), status_(CONNECTED), lastActivityTime_(creationTime)
+{ cgiFd_[READ] = -1; cgiFd_[WRITE] = -1;}
+
+void Client::closeCgiWriteFd()
+{
+	if (cgiFd_[WRITE] != -1)
+	{
+		close(cgiFd_[WRITE]);
+		cgiFd_[WRITE] = -1;
+	}
+}
+
+void Client::closeCgiReadFd()
+{
+	if (cgiFd_[READ] != -1)
+	{
+		close(cgiFd_[READ]);
+		cgiFd_[READ] = -1;
+	}
+}
+
+void Client::killCgi()
+{
+	if (cgiPid_ != 0)
+	{
+		kill(cgiPid_, SIGINT);
+		cgiPid_ = 0;
+	}
+}
 
 void Client::closeClient()
 {
@@ -20,6 +48,9 @@ void Client::closeClient()
 		close(fd_);
 		fd_ = -1;
 	}
+	closeCgiReadFd();
+	closeCgiWriteFd();
+	killCgi();
 }
 
 Client::~Client()
@@ -27,10 +58,13 @@ Client::~Client()
 	closeClient();
 }
 
-Client::Client(const Client& other): fd_(other.fd_), server_(other.server_), address_(other.address_),
-	 bufferOut_(other.bufferOut_), sent_(other.sent_), status_(other.status_), lastActivityTime_(other.lastActivityTime_){ }
-
 int Client::getFd() const {return fd_;}
+
+int* Client::getCgiFd() { return cgiFd_;}
+
+pid_t Client::getCgiPid() const {return cgiPid_;}
+
+void Client::setCgiPid(pid_t pid) { cgiPid_ = pid;}
 
 sockaddr_in& Client::getAddress() { return address_;}
 

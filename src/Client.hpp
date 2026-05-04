@@ -1,6 +1,7 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
+#include <csignal>
 #include <cerrno>
 #include <algorithm>
 #include <cstdlib>
@@ -30,9 +31,17 @@ enum clientStatus
 	DISCONNECT
 };
 
+enum cgiFD
+{
+	READ,
+	WRITE
+};
+
 class Client
 {
 	int				fd_;
+	int				cgiFd_[2];
+	pid_t			cgiPid_;
 	Server&			server_;
 	sockaddr_in		address_;
 	std::string		bufferOut_;
@@ -46,10 +55,12 @@ class Client
 	public:
 	Client(int fd, Server& server, sockaddr_in& address, time_t& creationTime);
 	~Client();
-	Client(const Client& other);
 
 	//getters and setters
 	int getFd() const;
+	int* getCgiFd();
+	pid_t getCgiPid() const;
+	void setCgiPid(pid_t);
 	sockaddr_in& getAddress();
 	clientStatus getStatus() const;
 	Server& getServer() const;
@@ -58,6 +69,9 @@ class Client
 	time_t	getLastActivityTime() const;
 	RequestParser& getRequest();
 
+	void closeCgiReadFd();
+	void closeCgiWriteFd();
+	void killCgi();
 	void closeClient();
 	void removeFromServer();
 	bool isTimeOut();
