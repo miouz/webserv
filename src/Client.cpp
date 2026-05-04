@@ -138,7 +138,19 @@ void Client::addCgiFdsToPool(std::vector<pollfd>& fdPool)
  */
 void Client::buildResponse(std::vector<pollfd>& fdPool)
 {
-	if ( isCgi(parsedRequest_.getData().uri, server_.getLocations()) == true)
+	ParsedData	data = request_.getData();
+	ServerConfig config = server_.getServerConfig();
+	std::string	resolvedUri = config.resolvePath(data.uri);
+	if (resolvedUri == "/..")
+		data.code = 403;
+	Location location = config.findLocation(data.uri);
+	if (location.getPath().empty())
+		data.code = 403;
+	#ifdef DEBUG
+		std::cout << "resolvePath:" << resolvedUri << '\n';
+		std::cout << "Location:" << location.getPath() << '\n';
+	#endif
+	if ( Request::isCgi(parsedRequest_.getData().uri, location) == true)
 	{
 		Cgi cgi(server_.getServerConfig(), parsedRequest_.getData());
 		int result = cgi.execute(*this, fdPool);
@@ -146,7 +158,7 @@ void Client::buildResponse(std::vector<pollfd>& fdPool)
 	}
 	//TODO: generate response
 	{
-		//request.response();
+		bufferOut_ = Request::response(config, data, location);
 	}
 }
 
@@ -279,15 +291,4 @@ void	disconnectClient(int fd, std::vector<Client*>& clients,
 	#endif
 	client->removeFromServer();
 	}
-}
-
-bool	isCgi(std::string& uri, Location& location)
-{
-	size_t	found = uri.find_last_of('.');
-	std::string	extension = uri.substr(found);
-	std::map<std::string, std::string> mapExtension = location.getCgiExtension();
-	std::string	 checkExtension = mapExtension[extension];
-	if (checkExtension.empty() == true)
-		return false;
-	return true;
 }

@@ -1,43 +1,26 @@
-#include "Config.hpp"
+#ifndef GETREQUEST_HPP
+# define GETREQUEST_HPP
+
 #include "Location.hpp"
-#include "RequestParser.hpp"
+#include "Request.hpp"
 
-struct responseGetRequest
-{
-	std::string	root;
-	std::string	protocol;
-	std::string	uri;
-	int	successCode;
-	std::string	server;
-	std::string	path;
-	std::string	contentType;
-	std::string	content;
-	bool	autoIndex;
-	bool	listDirectory;
-	size_t	contentLength;
-};
-
-//TODO: for better optimization, preload mapExtension
 class GetRequest
 {
 	public:
-		static std::string	response(const ServerConfig&, const ParsedData&);
+		static void	getResponse(responseRequest&, const Location&);
+		static void	serveFile(responseRequest&);
 	private:
 		GetRequest();
 		~GetRequest();
-		static responseGetRequest	initResponse(Location&, const ParsedData&);
-		static std::string	generateMessageResponse(responseGetRequest&);
-		static void	checkExtension(responseGetRequest&);
-		static std::map<std::string, std::string>	mapExtension();
-		static std::string generateResponse(const ServerConfig&, responseGetRequest&);
-		static std::string getMessageCode(int);
-		static bool	isGoodPath(responseGetRequest&);
-		static bool	isDirectory(responseGetRequest&);
-		static bool	isRedirect(const responseGetRequest&);
-		static void	serveFile(responseGetRequest&);
-		static void	listDirectory(responseGetRequest&);
-		static bool	findIndexPage(Location&, responseGetRequest&);
 
-		static std::string	formatHttpDate(time_t);
-		static std::string	FormatFileDate(time_t);
+	//get
+		static bool	isGoodPath(responseRequest&);
+		static bool	isDirectory(responseRequest&);
+		static void	listDirectory(responseRequest&);
+		static bool	findIndexPage(const Location&, responseRequest&);
+	
+	//time
+		static std::string FormatFileDate(time_t);
 };
+
+#endif

@@ -89,5 +89,4 @@ Client* findClient(int fd, std::vector<Client*>& clients);
 std::vector<pollfd>::iterator findFdInPool(std::vector<pollfd>& fdPool, int fd);
 void	disconnectClient(int fd, std::vector<Client*>& clients,
 					  std::vector<pollfd>& fdPool, std::vector<pollfd>::iterator toRemove);
-bool	isCgi(std::string& uri, Location& location);
 #endif // !CLIENT_HPP

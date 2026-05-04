@@ -10,7 +10,7 @@ RequestParser::RequestParser(): buffer_(""), isStartParsed_(false), isHeadersPar
 
 RequestParser::~RequestParser() {}
 
-void	RequestParser::feed(std::string& chunk)
+void	RequestParser::feed(const std::string& chunk)
 {
 	buffer_ += chunk;
 
@@ -87,7 +87,6 @@ void	RequestParser::parseBody()
 		if (static_cast<long>(buffer_.size()) < totalSize)
 			return ;
 		data_.body = buffer_.substr(0, totalSize);
-
 	}
 	#ifdef DEBUG
 		std::cout << "\nBody = {\n" << data_.body << "\n}\n";
@@ -127,6 +126,7 @@ void	RequestParser::setHeader(std::string& key, std::string& value)
 		iss >> token;
 		if (iss >> token)
 		{
+			std::cout << "WTFFFFFF\n";
 			endParsing(400);
 			return ;
 		}
@@ -159,12 +159,13 @@ void	RequestParser::checkStartLine()
 		}
 		isHeadersParsed_ = true;
 	}
-	// if (data_.protocol != "HTTP/1.0")//WARNING: We have to discuss what can be accepted
-	// 	throw std::runtime_error("400 Bad Request");
-	std::string	methods[NBR_METHODS] = {"GET", "POST", "DELETE"};
-	for (int i = 0; i < NBR_METHODS; i++)
-		if (data_.method == methods[i])
-			return ;
+	if (data_.protocol == "HTTP/1.0" || data_.protocol == "HTTP/1.1")
+	{
+		std::string	methods[NBR_METHODS] = {"GET", "POST", "DELETE"};
+		for (int i = 0; i < NBR_METHODS; i++)
+			if (data_.method == methods[i])
+				return ;
+	}
 	endParsing(400);
 }
 
@@ -178,7 +179,6 @@ void	RequestParser::checkHeaders(std::string& key, std::string& value)
 		endParsing(400);
 	else if (key == "CONTENT-LENGTH" && data_.headers.find("CONTENT-LENGTH") != data_.headers.end())
 		endParsing(400);
-
 }
 
 void	RequestParser::endParsing(int code)
