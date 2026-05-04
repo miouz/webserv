@@ -172,7 +172,8 @@ bool Client::cgiWriteBody()
 }
 
 /**
- * @brief [TODO:send request response]
+ * @brief send request response
+ * @return fully sent true or false
  */
 bool Client::sendResponse()
 {
@@ -189,11 +190,19 @@ bool Client::sendResponse()
 	return true;
 }
 
+/**
+ * @brief find which Client holds the fd as socket's fd or his cgi's fd
+ *
+ * @param fd the fd to find
+ * @param clients vector of pointers to Client
+ * @return the found Client's address or NULL
+ */
 Client* findClient(int fd, std::vector<Client*>& clients)
 {
 	for (size_t i = 0; i < clients.size(); i++)
 	{
-		if (fd == clients[i]->getFd())
+		if (fd == clients[i]->getFd() || fd == clients[i]->getCgiFd()[READ]
+			|| fd == clients[i]->getCgiFd()[WRITE])
 			return (clients[i]);
 	}
 	return NULL;
@@ -223,6 +232,17 @@ std::ostream& operator<<(std::ostream& out, Client& client)
 	return out;
 }
 
+
+std::vector<pollfd>::iterator findFdInPool(std::vector<pollfd>& fdPool, int fd)
+{
+	for(size_t i = 0; i < fdPool.size(); i++)
+	{
+		if (fd == fdPool[i].fd)
+			return fdPool.begin() + i;
+	}
+	return fdPool.end();
+}
+
 /**
  * @brief this function disconnect a client and clean its resources:
  * firstly it removes its pollfd from the fdPool for poll() to watch,
@@ -245,6 +265,12 @@ void	disconnectClient(int fd, std::vector<Client*>& clients,
 	Client* client = findClient(fd, clients);
 	if (client)
 	{
+		std::vector<pollfd>::iterator readFound = findFdInPool(fdPool, client->getCgiFd()[READ]);
+		if (readFound != fdPool.end())
+			fdPool.erase(readFound);
+		std::vector<pollfd>::iterator writeFound = findFdInPool(fdPool, client->getCgiFd()[WRITE]);
+		if (writeFound != fdPool.end())
+			fdPool.erase(writeFound);
 		std::vector<Client*>::iterator clientFound = std::find(clients.begin(),
 														 clients.end(), client);
 		clients.erase(clientFound);
@@ -254,6 +280,7 @@ void	disconnectClient(int fd, std::vector<Client*>& clients,
 	client->removeFromServer();
 	}
 }
+
 bool	isCgi(std::string& uri, Location& location)
 {
 	size_t	found = uri.find_last_of('.');
