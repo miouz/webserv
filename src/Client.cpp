@@ -1,5 +1,6 @@
 #include "Client.hpp"
 #include "Server.hpp"
+#include "Cgi.hpp"
 
 /**
  * @brief this constructor setup the client's attributes,
@@ -116,6 +117,20 @@ void Client::updateLastActivityTime()
 		return;
 	}
 	lastActivityTime_ = now;
+}
+
+void Client::addCgiFdsToPool(std::vector<pollfd>& fdPool)
+{
+	if (cgiFd_[READ] != -1)
+	{
+		pollfd readfd = fdToPollfdWithStatus(cgiFd_[READ], POLLIN);
+		fdPool.push_back(readfd);
+	}
+	if (cgiFd_[WRITE] != -1)
+	{
+		pollfd writefd = fdToPollfdWithStatus(cgiFd_[WRITE], POLLOUT);
+		fdPool.push_back(writefd);
+	}
 }
 
 /**

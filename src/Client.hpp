@@ -78,6 +78,7 @@ class Client
 	bool isTimeOut();
 	void updateLastActivityTime();
 	void buildResponse();
+	void addCgiFdsToPool(std::vector<pollfd>& fdPool);
 	bool sendResponse();
 	bool cgiWriteBody();
 };
