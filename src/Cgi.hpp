@@ -4,6 +4,7 @@
 # include <map>
 # include <vector>
 # include "RequestParser.hpp"
+# include "Client.hpp"
 
 // Forward declarations — full definitions are only needed in Cgi.cpp
 class ServerConfig;
@@ -13,7 +14,7 @@ class Cgi
 public:
     ~Cgi( void );
     Cgi(ServerConfig server, ParsedData request);
-    int execute(std::string &response);
+    int execute(Client&, std::vector<pollfd>&);
 private:
     Cgi( void );
     Cgi(Cgi &copy);

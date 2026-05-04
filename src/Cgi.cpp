@@ -74,10 +74,10 @@ Cgi	&Cgi::operator=(Cgi const &copy)
 	}
 }
 
-int Cgi::execute(int& cgiFd)
+int Cgi::execute(Client& client, std::vector<pollfd>& fdPool)
 {
-	int      pipein[2];
-	int      pipeout[2];
+	int      pipein[2] = {-1, -1};
+	int      pipeout[2] = {-1, -1};
 	pid_t    pid;
 	char**   env;
 
@@ -86,49 +86,78 @@ int Cgi::execute(int& cgiFd)
 
 	env = buildEnv();
 
-	if (pipe(pipein) < 0 || pipe(pipeout) < 0)
+	if (pipe(pipeout) == RETURN_ERROR)
 	{
 		freeEnv(env);
 		return (500);
 	}
+	if (method == "POST")
+	{
+		if (pipe(pipein) == RETURN_ERROR)
+		{
+			freeEnv(env);
+			close(pipeout[READ]);
+			close(pipeout[WRITE]);
+			return (500);
+		}
+	}
 
 	pid = fork();
+
 	if (pid < 0)
 	{
 		freeEnv(env);
+		close(pipeout[READ]);
+		close(pipeout[WRITE]);
+		if (pipein[READ] != -1)
+			close(pipein[READ]);
+		if (pipein[WRITE] != -1)
+			close(pipein[WRITE]);
 		return (500);
+	}
+
+	if (pid > 0)
+	{
+		if (pipein[READ] != -1)
+			close(pipein[READ]);
+		close(pipeout[WRITE]);
+		if (method == "POST")
+		{
+			client.getCgiFd()[WRITE] = pipein[WRITE];
+			fcntl(pipein[WRITE], F_SETFL, O_NONBLOCK);
+		}
+		client.getCgiFd()[READ] = pipeout[READ];
+		fcntl(pipeout[READ], F_SETFL, O_NONBLOCK);
+		client.setCgiPid(pid);
+		client.addCgiFdsToPool(fdPool);
+		freeEnv(env);
+		return (0);
 	}
 
 	if (pid == 0)
 		execChild(env, pipein, pipeout);
-
-	close(pipein[0]);
-	close(pipeout[1]);
-
-	if (method == "POST" && !body.empty())
-		write(pipein[1], body.c_str(), body.size());
-	close(pipein[1]);
-
-	freeEnv(env);
-
-	int exitStatus;
-
-	cgiFd = pipeout[0];
 	return (500);
 }
 
 void	Cgi::execChild(char** env, int* pipein, int*pipeout)
 {
-	dup2(pipein[0], 0);
-	dup2(pipeout[1], 1);
-	close(pipein[1]);
-	close(pipeout[0]);
+	close(pipeout[READ]);
+	if (pipein[WRITE] != -1)
+		close(pipein[WRITE]);
+	if (pipein[READ] != -1)
+	{
+		dup2(pipein[READ], STDIN_FILENO);
+		close(pipein[READ]);
+	}
+	dup2(pipeout[WRITE], STDOUT_FILENO);
+	close(pipeout[WRITE]);
 	chdir(workingDir.c_str());
 	char* argv[3];
 	argv[0] = const_cast<char*>(interpreterPath.c_str());
 	argv[1] = const_cast<char*>(scriptPath.c_str());
 	argv[2] = NULL;
 	execve(argv[0], argv, env);
+	freeEnv(env);
 	exit(1);
 }
 
