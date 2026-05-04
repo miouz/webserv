@@ -31,6 +31,7 @@ class RequestParser
 		std::string	getLine(std::string&) const;
 		std::string	getToken(std::istringstream&) const;
 
+		
 		void	setHeader(std::string&, std::string&);
 		void	checkHeaders(std::string&, std::string&);
 		void	checkStartLine();
@@ -40,7 +41,7 @@ class RequestParser
 	public:
 		RequestParser();
 		~RequestParser();
-		void	feed(std::string&);
+		void	feed(const std::string&);
 		bool	isComplete() const;
 		const ParsedData&	getData() const;
 };

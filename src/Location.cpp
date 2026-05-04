@@ -1,5 +1,6 @@
 #include "Location.hpp"
 #include "ServerConfig.hpp"
+#include <iostream>
 
 	Location::Location( void )
 {

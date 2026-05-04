@@ -12,6 +12,7 @@ class Location
 
 public : 
 
+	Location( void );
 	Location(std::ifstream &file);
 	Location(const Location &copy);
 	~Location( void );
@@ -30,7 +31,6 @@ public :
 
 private :
 
-	Location( void );
 	void	unexpectedEndException(std::string word, std::ifstream &file);
 	void	unexpectedVariableEndException(std::string word, std::ifstream &file);
 	void	unexpectedTokenException(std::string word, std::ifstream &file);

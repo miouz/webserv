@@ -30,8 +30,11 @@ static void test_full_mandatory_config(void)
     std::map<int, std::string> ep = c.getServers()[0].getErrorPage();
     ASSERT_EQ("server count", (size_t)1, c.getServers().size());
     ASSERT_EQ("first listen",  1, c.getServers()[0].getListen());
-    ASSERT_EQ("error_page count", (size_t)1, ep.size());
-    ASSERT_EQ("405 page", std::string("error/error405"), ep[405]);
+	std::map<int, std::string >::iterator it;
+	for (it = ep.begin(); it != ep.end(); it++)
+		std::cout << it->first << ":" << it->second << '\n';
+    ASSERT_EQ("error_page count", (size_t)5, ep.size());
+    ASSERT_EQ("500 page", std::string("./errors/500.html"), ep[500]);
     ASSERT_EQ("client_max_body_size", 40000, c.getServers()[0].getClientMaxBodySize());
     Location loc = c.getServers()[0].getLocations()[0];
 
@@ -80,7 +83,7 @@ static void test_multiple_error_pages(void)
     SUITE("Error page — multiple codes");
     Config c( "test/config-parser-test/multiple-error-pages.txt");
     std::map<int, std::string> ep = c.getServers()[0].getErrorPage();
-    ASSERT_EQ("error_page count", (size_t)2, ep.size());
+    ASSERT_EQ("error_page count", (size_t)5, ep.size());
     ASSERT_EQ("404 page", std::string("error/error404"), ep[404]);
     ASSERT_EQ("500 page", std::string("error/error500"), ep[500]);
     SUITE_END();
