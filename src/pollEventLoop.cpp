@@ -37,6 +37,7 @@ void cleanTimeOutClient(Data& data)
 	}
 }
 
+
 /**
  * @brief handle client's POLLIN POLLHUP events
  * for POLLIN: bytesRead = 0 means client disconnected , need to clean up resources
@@ -50,49 +51,23 @@ void cleanTimeOutClient(Data& data)
 HandlerResult clientEventHandler(Data& data, pollfd& fd, Client* client)
 {
 	(void)data;
+	 HandlerResult result = HANDLER_OK;
 
 	if (fd.revents & POLLIN)
 	{
-		if (fd is cgi)
-			{
-				feed buffer out from pipe
-				if finish read
-					build cgi response
-				fd = POLLOUT;
-			}
-	
-		if (fd is request)
-		char buff[READ_BUFF_SIZE] = {0};
-		ssize_t bytesRead = recv(client->getFd(), buff, READ_BUFF_SIZE, 0);
-
-		if (bytesRead == 0)
-			return HANDLER_DISCONNECT;
-		if (bytesRead > 0)
-		{
-			std::string toFeed(buff, bytesRead);
-			client->getRequest().feed(toFeed);
-			if (client->getRequest().isComplete())
-			{
-				client->buildResponse();
-				fd.events = POLLOUT;
-			}
-			#ifdef DEBUG
-				std::cout << "\nClient on fd "<<client->getFd() <<  " recieved request:\n" << buff << "\n";
-			#endif
-		}
+		if (fd.fd == client->getCgiFd()[READ])
+			result = clientCgiReadHandler(data, fd, client);
+		else
+			result = clientRecieveHandler(data, fd, client);
 	}
 	if (fd.revents & POLLOUT)
 	{
-		bool fullySent = client->sendResponse();
-		if (fullySent)
-		{
-			return HANDLER_DISCONNECT;
-			#ifdef DEBUG
-			std::cout << "response sent\n";
-			#endif
-		}
+		if (fd.fd == client->getCgiFd()[WRITE])
+			result = clientCgiWriteHandler(data, fd, client);
+		else
+		 	result = clientSendHandler(data, fd, client);
 	}
-	return HANDLER_OK;
+	return result;
 }
 
 HandlerResult serverEventHandler(Data& data, pollfd& fd)
