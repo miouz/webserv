@@ -46,6 +46,7 @@ class Client
 	sockaddr_in		address_;
 	std::string		bufferOut_;
 	size_t			sent_;
+	size_t			written_;
 	clientStatus	status_;
 	time_t			lastActivityTime_;
 	RequestParser	request_;
@@ -78,6 +79,7 @@ class Client
 	void updateLastActivityTime();
 	void buildResponse();
 	bool sendResponse();
+	bool cgiWriteBody();
 };
 
 std::ostream& operator<<(std::ostream& out, Client& client);

@@ -136,9 +136,26 @@ void Client::buildResponse()
 
 	}
 	else 
+
+/**
+ * @brief write body to pipeIn write side for cgi's stdin 
+ *
+ * @return fully written true or false
+ */
+bool Client::cgiWriteBody()
+{
+	std::string body = parsedRequest_.getData().body;
+	if (written_ < body.size())
 	{
-			
+		ssize_t written = write(cgiFd_[WRITE], body.c_str() + written_, body.size() - written_);
+		if (written >= 0)
+		{
+			written_ += written;
+			if (written_ < body.size())
+			return false;
+		}
 	}
+	return true;
 }
 
 /**
