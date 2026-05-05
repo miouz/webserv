@@ -185,11 +185,8 @@ bool	Request::isCgi(const std::string& uri, const Location& location)
 	if (found == std::string::npos)
 		return false;
 	std::string	extension = uri.substr(found + 1);
-	std::cout << "ISCGI:\n";
-	std::cout << "extension = " << extension << '\n';
 	std::map<std::string, std::string> mapExtension = location.getCgiExtension();
 	std::string	 checkExtension = mapExtension[extension];
-	std::cout << "Checkextension = " << checkExtension << '\n';
 	if (checkExtension.empty() == true)
 		return false;
 	return true;

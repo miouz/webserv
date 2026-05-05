@@ -54,39 +54,51 @@ HandlerResult clientCgiReadHandler(Data& data, pollfd& fd, Client* client)
 	ssize_t bytesRead = read(fd.fd, buff, READ_BUFF_SIZE);
 
 
-#ifdef debug
-	std::cout << "clientCgiReadHandler\n";
+#ifdef DEBUG
+	std::cerr << "clientCgiReadHandler\n";
+#endif
+#ifdef  DEBUG
+	std::cerr << "bytesRead =" << bytesRead << '\n';
 #endif
 	//TODO: execution of cgi finished
-	if (bytesRead == 0)
-	{
-		int exitStatus;
-		//if == 0 is error so let client time out disconnect it
-		if (waitpid(client->getCgiPid(), &exitStatus, WNOHANG) == 0)
-			return HANDLER_OK;
-		client->closeCgiReadFd();
-		std::vector<pollfd>::iterator cgiReadFdInPool = findFdInPool(data.fdPool, fd.fd);
-		data.fdPool.erase(cgiReadFdInPool);
-
-		//TODO: if error put the exitstatus code on request's error code
-		if (WIFEXITED(exitStatus) && WEXITSTATUS(exitStatus) == 0)
-			client->getRequest().getData().code = 200;
-		else
-			client->getRequest().getData().code = 500;
-
-		//TODO: generate response
-		#ifdef DEBUG
-		std::cerr << "cgi finished send response\n";
-		#endif
-		client->buildResponse();
-
-		std::vector<pollfd>::iterator clientFdInPool = findFdInPool(data.fdPool, client->getFd());
-		if (clientFdInPool == data.fdPool.end())
-			return HANDLER_DISCONNECT;
-		data.fdPool[clientFdInPool - data.fdPool.begin()].events = POLLOUT;
-	}
-	else if (bytesRead > 0)
+	if (bytesRead > 0)
 		client->getRequest().getData().body.append(buff, bytesRead);
+
+	//TODO: CAMILLE IDEE = CHECK POLLIN && CHILD ALIVE
+	int exitStatus;
+	//if == 0 is error so let client time out disconnect it
+	if (waitpid(client->getCgiPid(), &exitStatus, WNOHANG) == 0)
+	{
+		#ifdef DEBUG
+		std::cerr << "Still waitpiding\n";
+#endif
+		return HANDLER_OK;
+	}
+		#ifdef DEBUG
+		std::cerr << "DONE waitpiding\n";
+#endif
+
+	client->closeCgiReadFd();
+	std::vector<pollfd>::iterator cgiReadFdInPool = findFdInPool(data.fdPool, fd.fd);
+	data.fdPool.erase(cgiReadFdInPool);
+
+	//TODO: if error put the exitstatus code on request's error code
+	if (WIFEXITED(exitStatus) && WEXITSTATUS(exitStatus) >= 0)
+		client->getRequest().getData().code = 200;
+	else
+		client->getRequest().getData().code = 500;
+
+	//TODO: generate response
+#ifdef DEBUG
+	std::cerr << "cgi finished send response\n";
+#endif
+	client->buildResponse();
+	//MAYBE
+
+	std::vector<pollfd>::iterator clientFdInPool = findFdInPool(data.fdPool, client->getFd());
+	if (clientFdInPool == data.fdPool.end())
+		return HANDLER_DISCONNECT;
+	data.fdPool[clientFdInPool - data.fdPool.begin()].events = POLLOUT;
 	return HANDLER_OK;
 }
 
@@ -94,8 +106,8 @@ HandlerResult clientCgiWriteHandler(Data& data, pollfd& fd, Client* client)
 {
 	bool fullyWritten = client->cgiWriteBody();
 
-#ifdef debug
-	std::cout << "clientCgiWriteHandler\n";
+#ifdef DEBUG
+	std::cerr << "clientCgiWriteHandler\n";
 #endif
 	if(fullyWritten == true)
 	{
@@ -103,9 +115,9 @@ HandlerResult clientCgiWriteHandler(Data& data, pollfd& fd, Client* client)
 		std::vector<pollfd>::iterator cgiWriteFdInPool = findFdInPool(data.fdPool, fd.fd);
 		data.fdPool.erase(cgiWriteFdInPool);
 
-		#ifdef DEBUG
+#ifdef DEBUG
 		std::cout << "client fully written on pipe fd " << fd.fd << "\n";
-		#endif
+#endif
 	}
 	return HANDLER_OK;
 }
@@ -114,8 +126,8 @@ HandlerResult clientRecieveHandler(Data& data, pollfd& fd, Client* client)
 {
 	char buff[READ_BUFF_SIZE] = {0};
 
-#ifdef debug
-	std::cout << "clientCgiRecieveHandler\n";
+#ifdef DEBUG
+	std::cerr << "clientRecieveHandler\n";
 #endif
 	ssize_t bytesRead = recv(client->getFd(), buff, READ_BUFF_SIZE, 0);
 	if (bytesRead == 0)
@@ -132,25 +144,28 @@ HandlerResult clientRecieveHandler(Data& data, pollfd& fd, Client* client)
 			Location location = client->getServer().getServerConfig().findLocation(client->getRequest().getData().uri);
 			if (location.getPath().empty())
 				client->getRequest().getData().code = 403;
-			#ifdef DEBUG
-				std::cout << "resolvePath:" << resolvedUri << '\n';
-				std::cout << "Location:" << location.getPath() << '\n';
-			#endif
+#ifdef DEBUG
+			std::cout << "resolvePath:" << resolvedUri << '\n';
+			std::cout << "Location:" << location.getPath() << '\n';
+#endif
 			if ( Request::isCgi(client->getRequest().getData().uri, location) == true)
 			{
 				Cgi cgi(client->getServer().getServerConfig(), client->getRequest().getData());
-				
-				#ifdef DEBUG
+
+#ifdef DEBUG
 				std::cerr<< " begin cgi execution\n";
-				#endif
+#endif
 				int result = cgi.execute(*client, data.fdPool);
 				client->getRequest().getData().code = result;
 			}
-			client->buildResponse();
-			fd.events = POLLOUT;
-		#ifdef DEBUG
+			else
+			{
+				client->buildResponse();
+				fd.events = POLLOUT;
+			}
+#ifdef DEBUG
 			std::cout << "\nClient on fd "<<client->getFd() <<  " recieved request:\n" << buff << "\n";
-		#endif
+#endif
 		}
 	}
 	return HANDLER_OK;
@@ -164,9 +179,9 @@ HandlerResult clientSendHandler(Client* client)
 	bool fullySent = client->sendResponse();
 	if (fullySent)
 	{
-		#ifdef DEBUG
-		std::cout << "response fully sent\n";
-		#endif
+#ifdef DEBUG
+		std::cerr << "response fully sent\n";
+#endif
 		return HANDLER_DISCONNECT;
 	}
 	return HANDLER_OK;
@@ -185,7 +200,7 @@ HandlerResult clientSendHandler(Client* client)
 HandlerResult clientEventHandler(Data& data, pollfd& fd, Client* client)
 {
 	(void)data;
-	 HandlerResult result = HANDLER_OK;
+	HandlerResult result = HANDLER_OK;
 
 	if (fd.revents & POLLIN)
 	{
@@ -194,12 +209,15 @@ HandlerResult clientEventHandler(Data& data, pollfd& fd, Client* client)
 		else
 			result = clientRecieveHandler(data, fd, client);
 	}
-	if (fd.revents & POLLOUT)
+	else if (fd.revents & POLLOUT)
 	{
+		#ifdef DEBUG
+		std::cerr << "ON FAIS LES POLLOUTS METNANT\n";
+		#endif
 		if (fd.fd == client->getCgiFd()[WRITE])
 			result = clientCgiWriteHandler(data, fd, client);
 		else
-		 	result = clientSendHandler(client);
+			result = clientSendHandler(client);
 	}
 	return result;
 }
@@ -239,7 +257,7 @@ void eventsHandler(Data& data)
 
 		try {
 			Client *client = findClient(data.fdPool[i].fd, data.clients);
-			
+
 			if (client)
 			{
 				if (data.fdPool[i].revents & (POLLHUP | POLLERR)
@@ -251,7 +269,7 @@ void eventsHandler(Data& data)
 				}
 			}
 			else
-			{
+		{
 				if (data.fdPool[i].revents & (POLLHUP | POLLERR)
 					|| serverEventHandler(data, data.fdPool[i]) == HANDLER_DISCONNECT)
 				{
@@ -281,12 +299,12 @@ void eventsHandler(Data& data)
 void pollEventsLoop(Data& data)
 {
 	while (true) {
-		#ifdef DEBUG
+#ifdef DEBUG
 		std::cout << "\nfdPool to watch:";
 		for (size_t i = 0; i<data.fdPool.size();i++)
 			std::cout << data.fdPool[i].fd << "  ";
 		std::cout << "\n";
-		#endif
+#endif
 		int status = poll(data.fdPool.data(), data.fdPool.size(), POLL_TIMEOUT);
 		if (status < 0)
 		{
