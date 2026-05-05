@@ -239,10 +239,13 @@ void	Request::parseCgi(ParsedData& data, responseRequest& response)
 	std::cerr << "line ="  <<  line << "\n";
 	#endif
 
-		data.body = data.body.substr(line.size());
-		if (line.empty() == true)
+		data.body = data.body.substr(line.size() + 1);
+		if (line.empty())
 		{
-			data.body = data.body.substr(sep.size());
+
+		#ifdef DEBUG
+		std::cerr << "line ="  <<  line << "\n";
+		#endif
 			break ;
 		}
 		size_t	sepFound = line.find(sep);
@@ -252,12 +255,11 @@ void	Request::parseCgi(ParsedData& data, responseRequest& response)
 			return ;
 		}
 		std::string	key = line.substr(0, sepFound);
-		std::string	value = line.substr(sepFound + sep.size());
+		std::string	value = line.substr(sepFound + sep.size(), line.size() - 1);
 		capitalize(key);
 #ifdef DEBUG
 		std::cerr << key << ":" << value << "\n";
 #endif
-
 		if (key == "CONTENT-TYPE")
 			response.contentType = value;
 	}

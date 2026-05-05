@@ -35,6 +35,7 @@ Cgi	&Cgi::operator=(Cgi const &copy)
 	method        = request.method;
 	body          = request.body;
 	contentLength = request.body.size();
+	request.body = "";
 
 	std::string uri = request.uri;
 	size_t qPos = uri.find('?');
