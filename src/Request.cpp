@@ -18,10 +18,10 @@ std::string	Request::response(const ServerConfig& config, const ParsedData& data
 	responseRequest	responseData = initResponse(location, data);
 	static const int	NBR_METHODS = 3;
 	int	method;
-	if (responseData.successCode == 200)
+	if (responseData.successCode == 200 && data.isCgi == false)
 	{
 		checkExtension(responseData);
-		if (isCgi(responseData.extension, location) == false)
+		if (isCgi(responseData.uri, location) == false)
 		{
 			std::string	methods[NBR_METHODS] = {"GET", "POST", "DELETE"};
 			for (method = GET; method < NBR_METHODS; method++)
@@ -70,12 +70,15 @@ responseRequest	Request::initResponse(const Location& location, const ParsedData
 	response.listDirectory = false;
 	response.autoIndex = location.getAutoindex();
 	response.uri = data.uri;
+	response.isCgi = data.isCgi;
 	response.path = location.getRoot() + data.uri;
+	std::cout << "CGI:" << data.isCgi << '\n';
 	return response;
 }
 
 std::string	Request::generateResponse(const ServerConfig& config, responseRequest& responseData)
 {
+	std::cout << " ON arrive BIEN LA\n";
 	if (responseData.successCode != 200 && responseData.successCode != 201)
 	{
 		std::map<int, std::string>		errorMap = config.getErrorPage();
@@ -83,7 +86,7 @@ std::string	Request::generateResponse(const ServerConfig& config, responseReques
 		responseData.contentType = "text/html";
 		responseData.path = "./" + errorPage;
 	}
-	if (responseData.listDirectory == false)
+	if (responseData.listDirectory == false && responseData.isCgi == false)
 		GetRequest::serveFile(responseData);
 	time_t	t = time(NULL);
 	std::string time = formatHttpDate(t);
@@ -173,10 +176,17 @@ std::map<std::string, std::string> Request::mapExtension()
 	return map;
 }
 
-bool	Request::isCgi(const std::string& extension, const Location& location)
+bool	Request::isCgi(const std::string& uri, const Location& location)
 {
+	size_t	found = uri.find_last_of(".");
+	if (found == std::string::npos)
+		return false;
+	std::string	extension = uri.substr(found + 1);
+	std::cout << "ISCGI:\n";
+	std::cout << "extension = " << extension << '\n';
 	std::map<std::string, std::string> mapExtension = location.getCgiExtension();
 	std::string	 checkExtension = mapExtension[extension];
+	std::cout << "Checkextension = " << checkExtension << '\n';
 	if (checkExtension.empty() == true)
 		return false;
 	return true;
@@ -191,9 +201,6 @@ void	Request::checkExtension(responseRequest& response)
 		std::string	extension = response.uri.substr(found + 1);
 		std::string	type = map[extension];
 		if (type.empty() == false)
-		{
 			response.contentType = type;
-			response.extension = extension;
-		}
 	}
 }

@@ -9,6 +9,7 @@ struct ParsedData
 {
 	std::string	method;
 	std::string	uri;
+	bool		isCgi;
 	std::string	protocol;
 	std::map<std::string, std::string>	headers;
 	std::string	body;

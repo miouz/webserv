@@ -6,6 +6,7 @@
 RequestParser::RequestParser(): buffer_(""), isStartParsed_(false), isHeadersParsed_(false), isBodyParsed_(false)
 {
 	data_.code = 200;
+	data_.isCgi = false;
 }
 
 RequestParser::~RequestParser() {}

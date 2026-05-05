@@ -17,7 +17,7 @@ struct responseRequest
 	std::string	root;
 	std::string	protocol;
 	std::string	uri;
-	std::string	extension;
+	bool		isCgi;
 	int	successCode;
 	std::string	server;
 	std::string	path;

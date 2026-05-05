@@ -155,6 +155,7 @@ void Client::buildResponse(std::vector<pollfd>& fdPool)
 		Cgi cgi(server_.getServerConfig(), data);
 		int result = cgi.execute(*this, fdPool);
 		data.code = result;
+		data.isCgi = true;
 	}
 	else 
 		bufferOut_ = Request::response(config, data, location);
