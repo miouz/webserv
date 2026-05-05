@@ -118,6 +118,7 @@ int Cgi::execute(Client& client, std::vector<pollfd>& fdPool)
 
 	if (pid > 0)
 	{
+		client.getRequest().getData().isCgi = true;
 		if (pipein[READ] != -1)
 			close(pipein[READ]);
 		close(pipeout[WRITE]);

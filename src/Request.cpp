@@ -61,24 +61,27 @@ responseRequest	Request::initResponse(const Location& location, const ParsedData
 {
 	responseRequest	 response;
 
+	#ifdef DEBUG
+std::cerr << "iscgi :" << data.isCgi << '\n';
+#endif
 	response.root = location.getRoot() + "/";
 	response.protocol = "HTTP/1.0";
 	response.server = "webserv";
 	response.successCode = data.code;
 	response.contentType = "application/octet-stream";
-	response.contentLength = 0;
+	if (data.isCgi == true && data.body.empty() == false)
+		response.content = data.body;
+	response.contentLength = response.content.size();
 	response.listDirectory = false;
 	response.autoIndex = location.getAutoindex();
 	response.uri = data.uri;
 	response.isCgi = data.isCgi;
 	response.path = location.getRoot() + data.uri;
-	std::cout << "CGI:" << data.isCgi << '\n';
 	return response;
 }
 
 std::string	Request::generateResponse(const ServerConfig& config, responseRequest& responseData)
 {
-	std::cout << " ON arrive BIEN LA\n";
 	if (responseData.successCode != 200 && responseData.successCode != 201)
 	{
 		std::map<int, std::string>		errorMap = config.getErrorPage();
