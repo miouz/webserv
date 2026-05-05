@@ -82,10 +82,10 @@ HandlerResult clientCgiReadHandler(Data& data, pollfd& fd, Client* client)
 	std::cerr << "exitstatus= " << WEXITSTATUS(exitStatus) << '\n';
 #endif
 
-	if (WIFEXITED(exitStatus) && WEXITSTATUS(exitStatus) >= 0)
-		client->getRequest().getData().code = 200;
-	else
+	if (WIFEXITED(exitStatus) && WEXITSTATUS(exitStatus) == 1)
 		client->getRequest().getData().code = 500;
+	else
+		client->getRequest().getData().code = 200;
 
 	//TODO: generate response
 #ifdef DEBUG
