@@ -1,4 +1,6 @@
 #include "webserv.hpp"
+#include <sys/types.h>
+#include <sys/wait.h>
 
 
 /**
@@ -51,6 +53,10 @@ HandlerResult clientCgiReadHandler(Data& data, pollfd& fd, Client* client)
 	char buff[READ_BUFF_SIZE] = {0};
 	ssize_t bytesRead = read(fd.fd, buff, READ_BUFF_SIZE);
 
+
+#ifdef debug
+	std::cout << "clientCgiReadHandler\n";
+#endif
 	//TODO: execution of cgi finished
 	if (bytesRead == 0)
 	{
@@ -63,9 +69,14 @@ HandlerResult clientCgiReadHandler(Data& data, pollfd& fd, Client* client)
 
 		//TODO: if error put the exitstatus code on request's error code
 		if (WIFEXITED(exitStatus) && WEXITSTATUS(exitStatus) == 0)
+		{
 			client->getRequest().getData().code = 200;
-		//TODO: call response
-		//
+
+			ParsedData	data = client->getRequest().getData();
+			ServerConfig config = client->getServer().getServerConfig();
+			Location location = config.findLocation(data.uri);
+			client->getBufferOut() = Request::response(config, data, location);
+		}
 		std::vector<pollfd>::iterator clientFdInPool = findFdInPool(data.fdPool, client->getFd());
 		if (clientFdInPool == data.fdPool.end())
 			return HANDLER_DISCONNECT;
@@ -80,6 +91,9 @@ HandlerResult clientCgiWriteHandler(Data& data, pollfd& fd, Client* client)
 {
 	bool fullyWritten = client->cgiWriteBody();
 
+#ifdef debug
+	std::cout << "clientCgiWriteHandler\n";
+#endif
 	if(fullyWritten == true)
 	{
 		client->closeCgiWriteFd();
@@ -97,6 +111,9 @@ HandlerResult clientRecieveHandler(Data& data, pollfd& fd, Client* client)
 {
 	char buff[READ_BUFF_SIZE] = {0};
 
+#ifdef debug
+	std::cout << "clientCgiRecieveHandler\n";
+#endif
 	ssize_t bytesRead = recv(client->getFd(), buff, READ_BUFF_SIZE, 0);
 	if (bytesRead == 0)
 		return HANDLER_DISCONNECT;
@@ -118,6 +135,9 @@ HandlerResult clientRecieveHandler(Data& data, pollfd& fd, Client* client)
 
 HandlerResult clientSendHandler(Client* client)
 {
+#ifdef debug
+	std::cout << "clientSendHandler\n";
+#endif
 	bool fullySent = client->sendResponse();
 	if (fullySent)
 	{
