@@ -61,6 +61,7 @@ HandlerResult clientCgiReadHandler(Data& data, pollfd& fd, Client* client)
 	if (bytesRead == 0)
 	{
 		int exitStatus;
+		//if == 0 is error so let client time out disconnect it
 		if (waitpid(client->getCgiPid(), &exitStatus, WNOHANG) == 0)
 			return HANDLER_OK;
 		client->closeCgiReadFd();
@@ -69,14 +70,16 @@ HandlerResult clientCgiReadHandler(Data& data, pollfd& fd, Client* client)
 
 		//TODO: if error put the exitstatus code on request's error code
 		if (WIFEXITED(exitStatus) && WEXITSTATUS(exitStatus) == 0)
-		{
 			client->getRequest().getData().code = 200;
+		else
+			client->getRequest().getData().code = 500;
 
-			ParsedData	data = client->getRequest().getData();
-			ServerConfig config = client->getServer().getServerConfig();
-			Location location = config.findLocation(data.uri);
-			client->getBufferOut() = Request::response(config, data, location);
-		}
+		//TODO: generate response
+		#ifdef DEBUG
+		std::cerr << "cgi finished send response\n";
+		#endif
+		client->buildResponse();
+
 		std::vector<pollfd>::iterator clientFdInPool = findFdInPool(data.fdPool, client->getFd());
 		if (clientFdInPool == data.fdPool.end())
 			return HANDLER_DISCONNECT;
@@ -123,7 +126,27 @@ HandlerResult clientRecieveHandler(Data& data, pollfd& fd, Client* client)
 		client->getRequest().feed(toFeed);
 		if (client->getRequest().isComplete())
 		{
-			client->buildResponse(data.fdPool);
+			std::string	resolvedUri = client->getServer().getServerConfig().resolvePath(client->getRequest().getData().uri);
+			if (resolvedUri == "/..")
+				client->getRequest().getData().code = 403;
+			Location location = client->getServer().getServerConfig().findLocation(client->getRequest().getData().uri);
+			if (location.getPath().empty())
+				client->getRequest().getData().code = 403;
+			#ifdef DEBUG
+				std::cout << "resolvePath:" << resolvedUri << '\n';
+				std::cout << "Location:" << location.getPath() << '\n';
+			#endif
+			if ( Request::isCgi(client->getRequest().getData().uri, location) == true)
+			{
+				Cgi cgi(client->getServer().getServerConfig(), client->getRequest().getData());
+				
+				#ifdef DEBUG
+				std::cerr<< " begin cgi execution\n";
+				#endif
+				int result = cgi.execute(*client, data.fdPool);
+				client->getRequest().getData().code = result;
+			}
+			client->buildResponse();
 			fd.events = POLLOUT;
 		#ifdef DEBUG
 			std::cout << "\nClient on fd "<<client->getFd() <<  " recieved request:\n" << buff << "\n";

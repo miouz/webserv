@@ -136,29 +136,10 @@ void Client::addCgiFdsToPool(std::vector<pollfd>& fdPool)
 /**
  * @brief [TODO: build request response]
  */
-void Client::buildResponse(std::vector<pollfd>& fdPool)
+void Client::buildResponse()
 {
-	ParsedData	data = request_.getData();
-	ServerConfig config = server_.getServerConfig();
-	std::string	resolvedUri = config.resolvePath(data.uri);
-	if (resolvedUri == "/..")
-		data.code = 403;
-	Location location = config.findLocation(data.uri);
-	if (location.getPath().empty())
-		data.code = 403;
-	#ifdef DEBUG
-		std::cout << "resolvePath:" << resolvedUri << '\n';
-		std::cout << "Location:" << location.getPath() << '\n';
-	#endif
-	if ( Request::isCgi(data.uri, location) == true)
-	{
-		Cgi cgi(server_.getServerConfig(), data);
-		int result = cgi.execute(*this, fdPool);
-		data.code = result;
-		data.isCgi = true;
-	}
-	else 
-		bufferOut_ = Request::response(config, data, location);
+	Location location = server_.getServerConfig().findLocation(request_.getData().uri);
+	bufferOut_ = Request::response(server_.getServerConfig(), request_.getData(), location);
 }
 
 /**
