@@ -56,27 +56,22 @@ HandlerResult clientCgiReadHandler(Data& data, pollfd& fd, Client* client)
 
 #ifdef DEBUG
 	std::cerr << "clientCgiReadHandler\n";
-#endif
-#ifdef  DEBUG
 	std::cerr << "bytesRead =" << bytesRead << '\n';
 #endif
 	//TODO: execution of cgi finished
 	if (bytesRead > 0)
 		client->getRequest().getData().body.append(buff, bytesRead);
 
-	//TODO: CAMILLE IDEE = CHECK POLLIN && CHILD ALIVE
+	
 	int exitStatus;
 	//if == 0 is error so let client time out disconnect it
 	if (waitpid(client->getCgiPid(), &exitStatus, WNOHANG) == 0)
 	{
-		#ifdef DEBUG
-		std::cerr << "Still waitpiding\n";
-#endif
+		std::cerr << "STILL waitpiding\n";
 		return HANDLER_OK;
 	}
-		#ifdef DEBUG
-		std::cerr << "DONE waitpiding\n";
-#endif
+	else
+		std::cerr << "Done waiting\n";
 
 	client->closeCgiReadFd();
 	std::vector<pollfd>::iterator cgiReadFdInPool = findFdInPool(data.fdPool, fd.fd);
@@ -99,6 +94,9 @@ HandlerResult clientCgiReadHandler(Data& data, pollfd& fd, Client* client)
 	if (clientFdInPool == data.fdPool.end())
 		return HANDLER_DISCONNECT;
 	data.fdPool[clientFdInPool - data.fdPool.begin()].events = POLLOUT;
+	#ifdef DEBUG
+	std::cerr << "POLLOUT\n";
+#endif
 	return HANDLER_OK;
 }
 
@@ -209,7 +207,7 @@ HandlerResult clientEventHandler(Data& data, pollfd& fd, Client* client)
 		else
 			result = clientRecieveHandler(data, fd, client);
 	}
-	else if (fd.revents & POLLOUT)
+	if (fd.revents & POLLOUT)
 	{
 		#ifdef DEBUG
 		std::cerr << "ON FAIS LES POLLOUTS METNANT\n";
@@ -260,8 +258,19 @@ void eventsHandler(Data& data)
 
 			if (client)
 			{
-				if (data.fdPool[i].revents & (POLLHUP | POLLERR)
-					|| clientEventHandler(data, data.fdPool[i], client) == HANDLER_DISCONNECT)
+				bool isCgiReadFd = (data.fdPool[i].fd == client->getCgiFd()[READ]);
+				bool shouldDisconnect = false;
+
+				if (data.fdPool[i].revents & (POLLHUP | POLLERR))
+				{
+					if (isCgiReadFd)
+						clientCgiReadHandler(data, data.fdPool[i], client); // lire le reste + envoyer
+					else
+						shouldDisconnect = true;
+				}
+				else if (clientEventHandler(data, data.fdPool[i], client) == HANDLER_DISCONNECT)
+					shouldDisconnect = true;
+				if (shouldDisconnect == true)
 				{
 					disconnectClient(data.fdPool[i].fd, data.clients, data.fdPool, data.fdPool.begin() + i);
 					--i;
@@ -269,7 +278,7 @@ void eventsHandler(Data& data)
 				}
 			}
 			else
-		{
+			{
 				if (data.fdPool[i].revents & (POLLHUP | POLLERR)
 					|| serverEventHandler(data, data.fdPool[i]) == HANDLER_DISCONNECT)
 				{
