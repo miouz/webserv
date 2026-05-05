@@ -13,7 +13,7 @@ Request::Request() {}
 
 Request::~Request() {}
 
-std::string	Request::response(const ServerConfig& config, const ParsedData& data, const Location& location)
+std::string	Request::response(const ServerConfig& config, ParsedData& data, const Location& location)
 {
 	responseRequest	responseData = initResponse(location, data);
 	static const int	NBR_METHODS = 3;
@@ -57,7 +57,7 @@ bool	Request::isMethodAllowed(int method, const Location& location)
 	return true;
 }
 
-responseRequest	Request::initResponse(const Location& location, const ParsedData& data)
+responseRequest	Request::initResponse(const Location& location, ParsedData& data)
 {
 	responseRequest	 response;
 
@@ -68,9 +68,10 @@ std::cerr << "iscgi :" << data.isCgi << '\n';
 	response.protocol = "HTTP/1.0";
 	response.server = "webserv";
 	response.successCode = data.code;
-	response.contentType = "application/octet-stream";
-	if (data.isCgi == true && data.body.empty() == false)
-		response.content = data.body;
+	if (data.isCgi == true)
+		parseCgi(data, response);
+	else
+		response.contentType = "application/octet-stream";
 	response.contentLength = response.content.size();
 	response.listDirectory = false;
 	response.autoIndex = location.getAutoindex();
@@ -203,4 +204,63 @@ void	Request::checkExtension(responseRequest& response)
 		if (type.empty() == false)
 			response.contentType = type;
 	}
+}
+
+void	Request::parseCgi(ParsedData& data, responseRequest& response)
+{
+	std::string	EOL = "\r\n";
+	std::string	EOLEOL = "\r\n\r\n";
+	std::string	sep = ":";
+	size_t	found;
+	#ifdef DEBUG
+	std::cerr << "Start Parse cgi\n";
+	#endif
+	found	= data.body.find(EOLEOL);
+	response.contentType = "text/html";
+	if (found == std::string::npos)
+	{
+		#ifdef DEBUG
+		std::cerr << "EOL not found\n";
+		#endif
+		EOL = "\n";
+		EOLEOL = "\n\n";
+		found	= data.body.find(EOLEOL);
+		if (found == std::string::npos)
+			return ;
+		#ifdef DEBUG
+		std::cerr << "EOL  found\n";
+		#endif
+	}
+	do
+	{
+		found	= data.body.find(EOL);
+		std::string	line = data.body.substr(0, found);
+	#ifdef DEBUG
+	std::cerr << "line ="  <<  line << "\n";
+	#endif
+
+		data.body = data.body.substr(line.size());
+		if (line.empty() == true)
+		{
+			data.body = data.body.substr(sep.size());
+			break ;
+		}
+		size_t	sepFound = line.find(sep);
+		if (sepFound == std::string::npos)
+		{
+			response.successCode = 500;
+			return ;
+		}
+		std::string	key = line.substr(0, sepFound);
+		std::string	value = line.substr(sepFound + sep.size());
+		capitalize(key);
+#ifdef DEBUG
+		std::cerr << key << ":" << value << "\n";
+#endif
+
+		if (key == "CONTENT-TYPE")
+			response.contentType = value;
+	}
+	while (data.body.find(EOLEOL) != std::string::npos);
+	response.content = data.body;
 }

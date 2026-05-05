@@ -81,6 +81,9 @@ int Cgi::execute(Client& client, std::vector<pollfd>& fdPool)
 	pid_t    pid;
 	char**   env;
 
+	#ifdef DEBUG
+	std::cerr << "access " << scriptPath << '\n';
+#endif
 	if (access(scriptPath.c_str(), F_OK | X_OK) != 0)
 		return (404);
 
@@ -118,7 +121,6 @@ int Cgi::execute(Client& client, std::vector<pollfd>& fdPool)
 
 	if (pid > 0)
 	{
-		client.getRequest().getData().isCgi = true;
 		if (pipein[READ] != -1)
 			close(pipein[READ]);
 		close(pipeout[WRITE]);

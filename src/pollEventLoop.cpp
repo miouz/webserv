@@ -78,6 +78,10 @@ HandlerResult clientCgiReadHandler(Data& data, pollfd& fd, Client* client)
 	data.fdPool.erase(cgiReadFdInPool);
 
 	//TODO: if error put the exitstatus code on request's error code
+#ifdef DEBUG
+	std::cerr << "exitstatus= " << WEXITSTATUS(exitStatus) << '\n';
+#endif
+
 	if (WIFEXITED(exitStatus) && WEXITSTATUS(exitStatus) >= 0)
 		client->getRequest().getData().code = 200;
 	else
@@ -148,6 +152,7 @@ HandlerResult clientRecieveHandler(Data& data, pollfd& fd, Client* client)
 #endif
 			if ( Request::isCgi(client->getRequest().getData().uri, location) == true)
 			{
+				client->getRequest().getData().isCgi = true;
 				Cgi cgi(client->getServer().getServerConfig(), client->getRequest().getData());
 
 #ifdef DEBUG
@@ -156,7 +161,8 @@ HandlerResult clientRecieveHandler(Data& data, pollfd& fd, Client* client)
 				int result = cgi.execute(*client, data.fdPool);
 				client->getRequest().getData().code = result;
 			}
-			else
+			if (client->getRequest().getData().isCgi == false
+				|| client->getRequest().getData().code != 200)
 			{
 				client->buildResponse();
 				fd.events = POLLOUT;

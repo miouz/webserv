@@ -33,18 +33,20 @@ class Request
 {
 	public:
 		static bool	isCgi(const std::string&, const Location&);
-		static std::string	response(const ServerConfig&, const ParsedData&, const Location&);
+		static std::string	response(const ServerConfig&, ParsedData&, const Location&);
 	private:
 		Request();
 		~Request();
 
 		static bool	isMethodAllowed(int, const Location&);
-		static responseRequest	initResponse(const Location&, const ParsedData&);
+		static responseRequest	initResponse(const Location&, ParsedData&);
 		static std::string generateResponse(const ServerConfig&, responseRequest&);
 		static std::string getMessageCode(int);
 		static bool	isRedirect(const responseRequest&);
 		static bool	isEscaping(responseRequest&);
 		static void	serveFile(responseRequest&);
+	//
+		static void	parseCgi(ParsedData&, responseRequest&);
 	//
 	//time
 		static std::string	formatHttpDate(time_t);
