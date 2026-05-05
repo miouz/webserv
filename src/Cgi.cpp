@@ -131,7 +131,8 @@ int Cgi::execute(Client& client, std::vector<pollfd>& fdPool)
 		client.setCgiPid(pid);
 		client.addCgiFdsToPool(fdPool);
 		freeEnv(env);
-		return (0);
+		std::cerr << "RETURN 200\n";
+		return (200);
 	}
 
 	if (pid == 0)
@@ -151,14 +152,16 @@ void	Cgi::execChild(char** env, int* pipein, int*pipeout)
 	}
 	dup2(pipeout[WRITE], STDOUT_FILENO);
 	close(pipeout[WRITE]);
-	chdir(workingDir.c_str());
 	char* argv[3];
-	argv[0] = const_cast<char*>(interpreterPath.c_str());
+	argv[0] = const_cast<char*>("/usr/bin/python3");
 	argv[1] = const_cast<char*>(scriptPath.c_str());
 	argv[2] = NULL;
+	std::cerr << "EXECVE: " << argv[0] << " | " << argv[1] << '\n';
 	execve(argv[0], argv, env);
 	freeEnv(env);
-	exit(1);
+	std::cerr << "s'est mal passe \n";
+
+	exit(500);
 }
 
 char** Cgi::buildEnv()
