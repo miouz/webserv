@@ -89,6 +89,7 @@ std::string	Request::generateResponse(const ServerConfig& config, responseReques
 		std::string	errorPage = errorMap[responseData.successCode];
 		responseData.contentType = "text/html";
 		responseData.path = "./" + errorPage;
+		responseData.isCgi = false;
 	}
 	if (responseData.listDirectory == false && responseData.isCgi == false)
 		GetRequest::serveFile(responseData);
