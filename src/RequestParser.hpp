@@ -9,6 +9,7 @@ struct ParsedData
 {
 	std::string	method;
 	std::string	uri;
+	std::string	queryString;
 	bool		isCgi;
 	std::string	protocol;
 	std::map<std::string, std::string>	headers;
@@ -33,6 +34,7 @@ class RequestParser
 		std::string	getToken(std::istringstream&) const;
 
 		
+		void	removeQueryString(std::string&, std::string&);
 		void	setHeader(std::string&, std::string&);
 		void	checkHeaders(std::string&, std::string&);
 		void	checkStartLine();

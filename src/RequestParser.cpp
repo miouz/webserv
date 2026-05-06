@@ -34,6 +34,7 @@ void	RequestParser::parseStartLine()
 	buffer_ = buffer_.substr(found + EOL.size());
 	data_.method = getToken(iss);
 	data_.uri = getToken(iss);
+	removeQueryString(data_.uri, data_.queryString);
 	data_.protocol = getToken(iss);
 	checkStartLine();
 	isStartParsed_ = true;
@@ -204,4 +205,14 @@ void	capitalize(std::string& str)
 {
 	for (size_t i = 0; i < str.size(); i++)
 		str[i] = toupper(str[i]);
+}
+
+void	RequestParser::removeQueryString(std::string& uri, std::string& query)
+{
+	size_t	found;
+	found = uri.find('?');
+	if (found == std::string::npos)
+		return ;
+	query = uri.substr(found);
+	uri = uri.substr(0, found);
 }
