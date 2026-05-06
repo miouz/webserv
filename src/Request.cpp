@@ -31,6 +31,9 @@ std::string	Request::response(const ServerConfig& config, ParsedData& data, cons
 				responseData.successCode = 403;
 			else
 			{
+				#ifdef DEBUG
+				std::cerr << "Method:" << data.method << " allowed\n";
+				#endif
 				switch (method)
 				{
 					case GET:
@@ -40,6 +43,7 @@ std::string	Request::response(const ServerConfig& config, ParsedData& data, cons
 						PostRequest::postResponse(config, responseData, data, location);
 						break ;
 					case DELETE:
+						responseData.successCode = deleteResponse(responseData.path, responseData.uri);
 						break ;
 				}
 			}
@@ -268,4 +272,22 @@ void	Request::parseCgi(ParsedData& data, responseRequest& response)
 	}
 	while (data.body.find(EOLEOL) != std::string::npos);
 	response.content = data.body;
+}
+
+int    Request::deleteResponse(const std::string& file, const std::string& uri)
+{
+    const char *str = file.c_str();
+
+	#ifdef DEBUG
+	std::cerr << "delete: " << file << "\ncheck uri = [" << uri << "]\n";
+	#endif
+    if (uri == "/")
+        return (403);
+    if (access(str, F_OK) != 0)
+        return (200);
+    if (access(str, W_OK) != 0)
+		return (403);
+	if (remove(str) == 0)
+		return (200);
+	return (403);
 }

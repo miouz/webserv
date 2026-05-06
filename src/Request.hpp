@@ -32,6 +32,7 @@ struct responseRequest
 class Request
 {
 	public:
+		static int    deleteResponse(const std::string&, const std::string&);
 		static bool	isCgi(const std::string&, const Location&);
 		static std::string	response(const ServerConfig&, ParsedData&, const Location&);
 	private:
