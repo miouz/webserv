@@ -15,12 +15,14 @@
 
 	Config::Config(const std::string toread)
 {
-	std::ifstream	file(toread.c_str());
-	std::string 	word;
+	std::ifstream						file(toread.c_str());
+	std::string 						word;
+	std::map<std::string, std::string>	mapExtension;
 
 	if (file.is_open() == false)
 		throw std::runtime_error("Error opening file: " + toread);
 	word = getnextword(file);
+	mapExtension = this->mapExtension();
 	while (word != "")
 	{
 		if (word != "server")
@@ -29,7 +31,7 @@
 				throw std::runtime_error("unexpected \"" + word + "\"");
 			throw std::runtime_error("unknown directive \""+ word + "\"");
 		}
-		ServerConfig	temp(file);
+		ServerConfig	temp(file, mapExtension);
 		servers.push_back(temp);
 		word = getnextword(file);
 	}
@@ -38,6 +40,26 @@
 
 	file.close();
 }
+
+std::map<std::string, std::string> Config::mapExtension()
+{
+	std::ifstream	ifs("mime.types");
+	std::map<std::string, std::string> 	map;
+	std::string	token;
+	std::string	type;
+
+	if (ifs.is_open() == false)
+		throw std::runtime_error("Error opening file: mime.types");
+	while (ifs >> token)
+	{
+		if (token.find("/") != std::string::npos)
+			type = token;
+		else
+			map[token] = type;
+	}
+	return map;
+}
+
 
 	Config::~Config( void )
 {

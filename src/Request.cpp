@@ -20,7 +20,7 @@ std::string	Request::response(const ServerConfig& config, ParsedData& data, cons
 	int	method;
 	if (responseData.successCode == 200 && data.isCgi == false)
 	{
-		checkExtension(responseData);
+		checkExtension(responseData, config.getMapExtension());
 		if (isCgi(responseData.uri, location) == false)
 		{
 			std::string	methods[NBR_METHODS] = {"GET", "POST", "DELETE"};
@@ -168,23 +168,6 @@ std::string Request::formatHttpDate(time_t t)
 	return buffer;
 }
 
-std::map<std::string, std::string> Request::mapExtension()
-{
-	std::ifstream	ifs("mime.types");
-	std::map<std::string, std::string> 	map;
-	std::string	token;
-	std::string	type;
-
-	while (ifs >> token)
-	{
-		if (token.find("/") != std::string::npos)
-			type = token;
-		else
-			map[token] = type;
-	}
-	return map;
-}
-
 bool	Request::isCgi(const std::string& uri, const Location& location)
 {
 	if (location.getPath() != "/cgi-bin")
@@ -200,9 +183,8 @@ bool	Request::isCgi(const std::string& uri, const Location& location)
 	return true;
 }
 
-void	Request::checkExtension(responseRequest& response)
+void	Request::checkExtension(responseRequest& response, std::map<std::string, std::string>	map)
 {
-	std::map<std::string, std::string>	map = mapExtension();
 	size_t	found = response.uri.find_last_of(".");
 	if (found != std::string::npos)
 	{

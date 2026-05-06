@@ -3,6 +3,8 @@
 #include <iostream>
 #include <fstream>
 #include <stack>
+#include <stdio.h>
+#include <unistd.h>
 
 	ServerConfig::ServerConfig( void )
 {
@@ -31,7 +33,7 @@ ServerConfig	&ServerConfig::operator=(const ServerConfig &copy)
 {
 }
 
-	ServerConfig::ServerConfig(std::ifstream &file)
+	ServerConfig::ServerConfig(std::ifstream &file, std::map<std::string, std::string> mapExt)
 {
 	std::string	word;
 	std::string words[7] = {"", "{", ";", "location", "error_page", "listen", "client_max_body_size"};
@@ -39,6 +41,7 @@ ServerConfig	&ServerConfig::operator=(const ServerConfig &copy)
 			 &ServerConfig::setLocation, &ServerConfig::setErrorPage, &ServerConfig::setListen, &ServerConfig::setCMBS};
 
 	this->init();
+	mapExtension = mapExt;
 	word = getnextword(file);
 	if (word != "{")
 		throw std::runtime_error("directive \"server\" has no opening \"{\"");
@@ -64,12 +67,18 @@ ServerConfig	&ServerConfig::operator=(const ServerConfig &copy)
 
 void	ServerConfig::checkComplete()
 {
+    std::map<int, std::string>::const_iterator it;
+
 	if (this->listen == -1)
 			throw std::runtime_error("listen directive unused");
 	if (this->client_max_body_size == -1)
 			throw std::runtime_error("client_max_body_size directive unused");
 	if (this->locations.size() == 0)
-			throw std::runtime_error("location directive unused");}
+			throw std::runtime_error("location directive unused");
+    for (it = error_page.begin(); it != error_page.end(); ++it)
+		if (access(it->second.c_str(), R_OK) != 0)
+			throw std::runtime_error("Error opening file: " + it->second);
+}
 
 void	ServerConfig::init()
 {
@@ -200,6 +209,11 @@ int							ServerConfig::getClientMaxBodySize() const
 const std::map<int, std::string>&	ServerConfig::getErrorPage() const
 {
 	return (this->error_page);
+}
+
+std::map<std::string, std::string>	ServerConfig::getMapExtension() const
+{
+	return (this->mapExtension);
 }
 
 void	ServerConfig::print()
