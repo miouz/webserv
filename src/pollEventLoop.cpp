@@ -118,7 +118,7 @@ HandlerResult clientCgiWriteHandler(Data& data, pollfd& fd, Client* client)
 		data.fdPool.erase(cgiWriteFdInPool);
 
 #ifdef DEBUG
-		std::cout << "client fully written on pipe fd " << fd.fd << "\n";
+		std::cerr << "client fully written on pipe fd " << fd.fd << "\n";
 #endif
 	}
 	return HANDLER_OK;
@@ -147,8 +147,8 @@ HandlerResult clientRecieveHandler(Data& data, pollfd& fd, Client* client)
 			if (location.getPath().empty())
 				client->getRequest().getData().code = 403;
 #ifdef DEBUG
-			std::cout << "resolvePath:" << resolvedUri << '\n';
-			std::cout << "Location:" << location.getPath() << '\n';
+			std::cerr << "resolvePath:" << resolvedUri << '\n';
+			std::cerr << "Location:" << location.getPath() << '\n';
 #endif
 			if ( Request::isCgi(client->getRequest().getData().uri, location) == true)
 			{
@@ -168,7 +168,7 @@ HandlerResult clientRecieveHandler(Data& data, pollfd& fd, Client* client)
 				fd.events = POLLOUT;
 			}
 #ifdef DEBUG
-			std::cout << "\nClient on fd "<<client->getFd() <<  " recieved request:\n" << buff << "\n";
+			std::cerr << "\nClient on fd "<<client->getFd() <<  " recieved request:\n" << buff << "\n";
 #endif
 		}
 	}
@@ -315,10 +315,10 @@ void pollEventsLoop(Data& data)
 {
 	while (true) {
 #ifdef DEBUG
-		std::cout << "\nfdPool to watch:";
+		std::cerr << "\nfdPool to watch:";
 		for (size_t i = 0; i<data.fdPool.size();i++)
-			std::cout << data.fdPool[i].fd << "  ";
-		std::cout << "\n";
+			std::cerr << data.fdPool[i].fd << "  ";
+		std::cerr << "\n";
 #endif
 		int status = poll(data.fdPool.data(), data.fdPool.size(), POLL_TIMEOUT);
 		if (status < 0)

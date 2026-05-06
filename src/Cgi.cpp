@@ -38,41 +38,52 @@ Cgi	&Cgi::operator=(Cgi const &copy)
 	request.body = "";
 
 	std::string uri = request.uri;
-	size_t qPos = uri.find('?');
-	std::string uriWithoutQuery = (qPos != std::string::npos) ? uri.substr(0, qPos) : uri;
-	queryString = (qPos != std::string::npos) ? uri.substr(qPos + 1) : "";
+	queryString = request.queryString;
 
 	Location loc = findLocation(uri, server);
 	std::map<std::string, std::string> cgiMap = loc.getCgiExtension();
 	std::map<std::string, std::string>::iterator it;
 	for (it = cgiMap.begin(); it != cgiMap.end(); ++it)
 	{
-		size_t extPos = uriWithoutQuery.find(it->first);
+		size_t extPos = uri.find(it->first);
 		if (extPos != std::string::npos)
 		{
-			scriptName = uriWithoutQuery.substr(0, extPos + it->first.size());
-			pathInfo   = uriWithoutQuery.substr(extPos + it->first.size());
+			scriptName = uri.substr(0, extPos + it->first.size());
+			pathInfo   = uri.substr(extPos + it->first.size());
 			interpreterPath = it->second;
 			break;
 		}
-	}	
+	}
 
 	scriptPath  = loc.getRoot() + scriptName;
 	workingDir  = scriptPath.substr(0, scriptPath.rfind('/'));
 
 	serverPort = server.getListen();
 
-	std::map<std::string,std::string>::const_iterator ctIt = request.headers.find("Content-Type");
+	std::map<std::string,std::string>::const_iterator ctIt = request.headers.find("CONTENT-TYPE");
 	contentType = (ctIt != request.headers.end()) ? ctIt->second : "";
 	for (std::map<std::string,std::string>::const_iterator h = request.headers.begin(); h != request.headers.end(); ++h)
 	{
-		if (h->first == "Content-Type" || h->first == "Content-Length")
+		if (h->first == "CONTENT-TYPE" || h->first == "CONTENT-LENGTH")
 			continue;
 		std::string key = "HTTP_";
 		for (size_t i = 0; i < h->first.size(); i++)
 			key += (h->first[i] == '-') ? '_' : toupper(h->first[i]);
 		httpHeaders[key] = h->second;
 	}
+	#ifdef DEBUG
+	std::cerr << "scriptPath:"       << scriptPath << '\n';
+	std::cerr << "interpreterPath:"  << interpreterPath << '\n';
+	std::cerr << "workingDir:"       << workingDir << '\n';
+	std::cerr << "method:"           << method << '\n';          
+	std::cerr << "queryString:"      << queryString << '\n';     
+	std::cerr << "body:"             << body << '\n';            
+	std::cerr << "contentType:"      << contentType << '\n';     
+	std::cerr << "contentLength:"    << contentLength << '\n';   
+	std::cerr << "serverPort:"       << serverPort << '\n';
+	std::cerr << "scriptName:"       << scriptName << '\n';
+	std::cerr << "pathInfo:"         << pathInfo << '\n';
+#endif
 }
 
 int Cgi::execute(Client& client, std::vector<pollfd>& fdPool)
@@ -89,6 +100,14 @@ int Cgi::execute(Client& client, std::vector<pollfd>& fdPool)
 		return (404);
 
 	env = buildEnv();
+	#ifdef DEBUG
+	int i = 0;
+	while (env[i])
+	{
+		std::cerr << "env[" << i << "] = " << env[i] << '\n';
+		i++;
+	}
+#endif
 
 	if (pipe(pipeout) == RETURN_ERROR)
 	{

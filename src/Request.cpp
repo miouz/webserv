@@ -122,7 +122,7 @@ std::string	Request::generateResponse(const ServerConfig& config, responseReques
 	if (responseData.successCode != 201)
 		response += responseData.content;
 #ifdef DEBUG
-	std::cout << "response:\n" << response << '\n';
+	std::cerr << "response:\n" << response << '\n';
 #endif
 	return response;
 }

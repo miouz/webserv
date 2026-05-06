@@ -267,7 +267,7 @@ void	disconnectClient(int fd, std::vector<Client*>& clients,
 														 clients.end(), client);
 		clients.erase(clientFound);
 	#ifdef DEBUG
-	std::cout << "\nClient on fd " << client->getFd() << " is DISCONNECTED now\n";
+	std::cerr << "\nClient on fd " << client->getFd() << " is DISCONNECTED now\n";
 	#endif
 	client->removeFromServer();
 	}

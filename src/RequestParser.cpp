@@ -135,7 +135,7 @@ void	RequestParser::setHeader(std::string& key, std::string& value)
 	}
 
 	#ifdef DEBUG
-		std::cout << "\n[" << key << ":" << value << "]\n";
+		std::cerr << "\n[" << key << ":" << value << "]\n";
 	#endif
 
 	checkHeaders(key, value);
@@ -213,6 +213,10 @@ void	RequestParser::removeQueryString(std::string& uri, std::string& query)
 	found = uri.find('?');
 	if (found == std::string::npos)
 		return ;
-	query = uri.substr(found);
+	if (uri.size() >= found + 1)
+		query = uri.substr(found + 1);
+	#ifdef DEBUG
+	std::cerr << "QUERY=[" << query << "]\n";
+	#endif
 	uri = uri.substr(0, found);
 }
