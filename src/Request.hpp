@@ -51,7 +51,7 @@ class Request
 	//time
 		static std::string	formatHttpDate(time_t);
 
-		static void	checkExtension(responseRequest&);
+		static void	checkExtension(responseRequest&, std::map<std::string, std::string>);
 		static std::map<std::string, std::string>	mapExtension();
 };
 

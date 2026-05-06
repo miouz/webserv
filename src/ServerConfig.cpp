@@ -33,7 +33,7 @@ ServerConfig	&ServerConfig::operator=(const ServerConfig &copy)
 {
 }
 
-	ServerConfig::ServerConfig(std::ifstream &file)
+	ServerConfig::ServerConfig(std::ifstream &file, std::map<std::string, std::string> mapExt)
 {
 	std::string	word;
 	std::string words[7] = {"", "{", ";", "location", "error_page", "listen", "client_max_body_size"};
@@ -41,6 +41,7 @@ ServerConfig	&ServerConfig::operator=(const ServerConfig &copy)
 			 &ServerConfig::setLocation, &ServerConfig::setErrorPage, &ServerConfig::setListen, &ServerConfig::setCMBS};
 
 	this->init();
+	mapExtension = mapExt;
 	word = getnextword(file);
 	if (word != "{")
 		throw std::runtime_error("directive \"server\" has no opening \"{\"");
@@ -208,6 +209,11 @@ int							ServerConfig::getClientMaxBodySize() const
 const std::map<int, std::string>&	ServerConfig::getErrorPage() const
 {
 	return (this->error_page);
+}
+
+std::map<std::string, std::string>	ServerConfig::getMapExtension() const
+{
+	return (this->mapExtension);
 }
 
 void	ServerConfig::print()
