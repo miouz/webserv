@@ -183,6 +183,8 @@ std::map<std::string, std::string> Request::mapExtension()
 
 bool	Request::isCgi(const std::string& uri, const Location& location)
 {
+	if (location.getPath() != "/cgi-bin")
+		return false;
 	size_t	found = uri.find_last_of(".");
 	if (found == std::string::npos)
 		return false;
