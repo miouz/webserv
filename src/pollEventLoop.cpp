@@ -79,10 +79,12 @@ HandlerResult clientCgiReadHandler(Data& data, pollfd& fd, Client* client)
 
 	//TODO: if error put the exitstatus code on request's error code
 #ifdef DEBUG
-	std::cerr << "exitstatus= " << WEXITSTATUS(exitStatus) << '\n';
+	std::cerr << "Wexitstatus= " << WEXITSTATUS(exitStatus) << '\n';
+	std::cerr << "exitstatus= " << exitStatus << '\n';
 #endif
 
-	if (WIFEXITED(exitStatus) && WEXITSTATUS(exitStatus) == 1)
+
+	if ((WIFEXITED(exitStatus) && WEXITSTATUS(exitStatus) == 1) || exitStatus == 500)
 		client->getRequest().getData().code = 500;
 	else
 		client->getRequest().getData().code = 200;

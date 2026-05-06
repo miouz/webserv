@@ -48,6 +48,7 @@ Cgi	&Cgi::operator=(Cgi const &copy)
 		size_t extPos = uri.find(it->first);
 		if (extPos != std::string::npos)
 		{
+			ext = it->first;
 			scriptName = uri.substr(0, extPos + it->first.size());
 			pathInfo   = uri.substr(extPos + it->first.size());
 			interpreterPath = it->second;
@@ -178,7 +179,15 @@ void	Cgi::execChild(char** env, int* pipein, int*pipeout)
 	dup2(pipeout[WRITE], STDOUT_FILENO);
 	close(pipeout[WRITE]);
 	char* argv[3];
-	argv[0] = const_cast<char*>("/usr/bin/python3");
+	if (ext == "php")
+		argv[0] = const_cast<char*>("/usr/bin/php");
+	else if (ext == "py")
+		argv[0] = const_cast<char*>("/usr/bin/python3");
+	else
+	{
+		freeEnv(env);
+		exit(1);
+	}
 	argv[1] = const_cast<char*>(scriptPath.c_str());
 	argv[2] = NULL;
 	#ifdef DEBUG
@@ -190,7 +199,7 @@ void	Cgi::execChild(char** env, int* pipein, int*pipeout)
 	std::cerr << "s'est mal passe \n";
 #endif
 
-	exit(500);
+	exit(1);
 }
 
 char** Cgi::buildEnv()

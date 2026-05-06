@@ -24,6 +24,7 @@ private:
     char**  buildEnv();
 
     std::string                         scriptPath;
+    std::string                         ext;
     std::string                         interpreterPath;
     std::string                         workingDir;
     std::string                         method;
