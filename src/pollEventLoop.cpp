@@ -150,7 +150,6 @@ HandlerResult clientRecieveHandler(Data& data, pollfd& fd, Client* client)
 				client->getRequest().getData().code = 403;
 #ifdef DEBUG
 			std::cerr << "resolvePath:" << resolvedUri << '\n';
-			std::cerr << "Location:" << location.getPath() << '\n';
 #endif
 			if ( Request::isCgi(client->getRequest().getData().uri, location) == true)
 			{
@@ -217,9 +216,6 @@ HandlerResult clientEventHandler(Data& data, pollfd& fd, Client* client)
 	}
 	if (fd.revents & POLLOUT)
 	{
-		#ifdef DEBUG
-		std::cerr << "ON FAIS LES POLLOUTS METNANT\n";
-		#endif
 		if (fd.fd == client->getCgiFd()[WRITE])
 			result = clientCgiWriteHandler(data, fd, client);
 		else

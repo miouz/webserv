@@ -65,9 +65,6 @@ responseRequest	Request::initResponse(const Location& location, ParsedData& data
 {
 	responseRequest	 response;
 
-	#ifdef DEBUG
-std::cerr << "iscgi :" << data.isCgi << '\n';
-#endif
 	response.root = location.getRoot() + "/";
 	response.protocol = "HTTP/1.0";
 	response.server = "webserv";

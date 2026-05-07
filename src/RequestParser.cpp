@@ -40,9 +40,10 @@ void	RequestParser::parseStartLine()
 	isStartParsed_ = true;
 
 	#ifdef DEBUG
-		std::cout << "method = [" << data_.method << "]\n";
-		std::cout << "uri = [" << data_.uri << "]\n";
-		std::cout << "protocol = [" << data_.protocol << "]\n";
+		std::cerr << "method = [" << data_.method << "]\n";
+		std::cerr << "uri = [" << data_.uri << "]\n";
+		std::cerr << "protocol = [" << data_.protocol << "]\n";
+		std::cerr << "headers =\n";
 	#endif
 }
 
@@ -53,7 +54,7 @@ void	RequestParser::parseHeaders()
 	std::string	value;
 
 	#ifdef DEBUG
-		std::cout << "\n[key:value]\n";
+		std::cerr << "[key:value]\n";
 	#endif
 	while (buffer_.find("\r\n") != std::string::npos && isComplete() == false)
 	{
@@ -128,14 +129,13 @@ void	RequestParser::setHeader(std::string& key, std::string& value)
 		iss >> token;
 		if (iss >> token)
 		{
-			std::cout << "WTFFFFFF\n";
 			endParsing(400);
 			return ;
 		}
 	}
 
 	#ifdef DEBUG
-		std::cerr << "\n[" << key << ":" << value << "]\n";
+		std::cerr << "[" << key << ":" << value << "]\n";
 	#endif
 
 	checkHeaders(key, value);
