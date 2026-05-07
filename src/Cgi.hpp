@@ -31,6 +31,7 @@ private:
     std::string                         queryString;
     std::string                         body;
     std::string                         contentType;
+    std::string                         httpCookie;
     size_t                              contentLength;
     int                                 serverPort;
     std::string                         scriptName;

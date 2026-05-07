@@ -63,6 +63,8 @@ Cgi	&Cgi::operator=(Cgi const &copy)
 
 	std::map<std::string,std::string>::const_iterator ctIt = request.headers.find("CONTENT-TYPE");
 	contentType = (ctIt != request.headers.end()) ? ctIt->second : "";
+	ctIt = request.headers.find("COOKIE");
+	httpCookie = (ctIt != request.headers.end()) ? ctIt->second : "";
 	for (std::map<std::string,std::string>::const_iterator h = request.headers.begin(); h != request.headers.end(); ++h)
 	{
 		if (h->first == "CONTENT-TYPE" || h->first == "CONTENT-LENGTH")
@@ -97,8 +99,10 @@ int Cgi::execute(Client& client, std::vector<pollfd>& fdPool)
 	#ifdef DEBUG
 	std::cerr << "access " << scriptPath << '\n';
 #endif
-	if (access(scriptPath.c_str(), F_OK | X_OK) != 0)
+	if (access(scriptPath.c_str(), F_OK) != 0)
 		return (404);
+	if (access(scriptPath.c_str(), X_OK) != 0)
+		return (403);
 
 	env = buildEnv();
 	#ifdef DEBUG
@@ -212,6 +216,7 @@ char** Cgi::buildEnv()
 	envVec.push_back("SCRIPT_FILENAME=" + scriptPath);
 	envVec.push_back("SCRIPT_NAME="     + scriptName);
 	envVec.push_back("PATH_INFO="       + pathInfo);
+	envVec.push_back("HTTP_COOKIE="     + httpCookie);
 	std::ostringstream ossPort;
 	ossPort << serverPort;
 	envVec.push_back("SERVER_PORT=" + ossPort.str());

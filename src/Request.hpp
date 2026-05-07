@@ -23,6 +23,7 @@ struct responseRequest
 	std::string	path;
 	std::string	contentType;
 	std::string	content;
+	std::string	cookie;
 	bool	autoIndex;
 	bool	listDirectory;
 	size_t	contentLength;

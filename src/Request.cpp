@@ -118,6 +118,8 @@ std::string	Request::generateResponse(const ServerConfig& config, responseReques
 	}
 	if (isRedirect(responseData))
 		response += "Location: " + responseData.uri + "/" + EOL;
+	if (responseData.cookie.empty() == false)
+		response += "Set-Cookie: " + responseData.cookie + EOL;
 	response += "Connection: close" + EOL + EOL;
 	if (responseData.successCode != 201)
 		response += responseData.content;
@@ -251,6 +253,9 @@ void	Request::parseCgi(ParsedData& data, responseRequest& response)
 #endif
 		if (key == "CONTENT-TYPE")
 			response.contentType = value;
+		if (key == "SET-COOKIE")
+			response.cookie = value;
+
 	}
 	while (data.body.find(EOLEOL) != std::string::npos);
 	response.content = data.body;
