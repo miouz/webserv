@@ -15,6 +15,7 @@ if session_id:
     # Returning visitor
     body = f"<h1>Welcome back! Session: {session_id}</h1>"
     print("Content-Type: text/html")
+    print("GARBAGE ")
     print()  # blank line separates headers from body
     print(body)
 else:

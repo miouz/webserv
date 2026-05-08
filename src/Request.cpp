@@ -230,41 +230,23 @@ void	Request::parseCgi(ParsedData& data, responseRequest& response)
 	response.contentType = "text/html";
 	if (found == std::string::npos)
 	{
-		#ifdef DEBUG
-		std::cerr << "EOL not found\n";
-		#endif
 		EOL = "\n";
 		EOLEOL = "\n\n";
 		found	= data.body.find(EOLEOL);
 		if (found == std::string::npos)
 			return ;
-		#ifdef DEBUG
-		std::cerr << "EOL  found\n";
-		#endif
 	}
 	do
 	{
 		found	= data.body.find(EOL);
 		std::string	line = data.body.substr(0, found);
-	#ifdef DEBUG
-	std::cerr << "line ="  <<  line << "\n";
-	#endif
 
 		data.body = data.body.substr(line.size() + 1);
 		if (line.empty())
-		{
-
-		#ifdef DEBUG
-		std::cerr << "line ="  <<  line << "\n";
-		#endif
 			break ;
-		}
 		size_t	sepFound = line.find(sep);
 		if (sepFound == std::string::npos)
-		{
-			response.successCode = 500;
-			return ;
-		}
+			continue ;
 		std::string	key = line.substr(0, sepFound);
 		std::string	value = line.substr(sepFound + sep.size(), line.size() - 1);
 		capitalize(key);
@@ -284,9 +266,6 @@ int    Request::deleteResponse(const std::string& file, const std::string& uri)
 {
     const char *str = file.c_str();
 
-	#ifdef DEBUG
-	std::cerr << "delete: " << file << "\ncheck uri = [" << uri << "]\n";
-	#endif
     if (uri == "/")
         return (403);
     if (access(str, F_OK) != 0)

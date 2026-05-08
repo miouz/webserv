@@ -149,4 +149,3 @@ void	GetRequest::serveFile(responseRequest& responseData)
 		responseData.contentLength = responseData.content.size();
 	}
 }
-
