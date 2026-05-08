@@ -85,6 +85,10 @@ void	ServerConfig::init()
     this->listen = -1;
 	this->client_max_body_size = -1;
 	this->error_page[301] = "./errors/301.html";
+	this->error_page[302] = "./errors/302.html";
+	this->error_page[303] = "./errors/303.html";
+	this->error_page[307] = "./errors/307.html";
+	this->error_page[308] = "./errors/308.html";
 	this->error_page[400] = "./errors/400.html";
 	this->error_page[403] = "./errors/403.html";
 	this->error_page[404] = "./errors/404.html";
@@ -198,7 +202,7 @@ const std::vector<Location>&		ServerConfig::getLocations() const
 {
 	return (this->locations);
 }
-int							ServerConfig::getListen()
+int							ServerConfig::getListen() const
 {
 	return (this->listen);
 }

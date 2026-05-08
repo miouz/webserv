@@ -17,7 +17,7 @@ public :
 	~ServerConfig( void );
 
 	const std::vector<Location>&		getLocations() const;
-	int									getListen();
+	int									getListen() const;
 	const std::map<int, std::string>&	getErrorPage() const;
 	int									getClientMaxBodySize() const;
 	std::map<std::string, std::string>	getMapExtension() const;
