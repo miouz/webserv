@@ -40,7 +40,7 @@ void cleanTimeOutClient(Data& data)
 }
 
 /**
- * @brief [TODO: this function reads partially the result of cgi execution
+ * @brief this function reads partially the result of cgi execution
  *          and feed the buffer in order to generate the response]
  *
  * @param data [struct Data]
@@ -53,56 +53,31 @@ HandlerResult clientCgiReadHandler(Data& data, pollfd& fd, Client* client)
 	char buff[READ_BUFF_SIZE] = {0};
 	ssize_t bytesRead = read(fd.fd, buff, READ_BUFF_SIZE);
 
-
-#ifdef DEBUG
-	std::cerr << "clientCgiReadHandler\n";
-	std::cerr << "bytesRead =" << bytesRead << '\n';
-#endif
-	//TODO: execution of cgi finished
 	if (bytesRead > 0)
 		client->getRequest().getData().body.append(buff, bytesRead);
-
 	
 	int exitStatus;
-	//if == 0 is error so let client time out disconnect it
 	if (waitpid(client->getCgiPid(), &exitStatus, WNOHANG) == 0)
-	{
-		std::cerr << "STILL waitpiding\n";
 		return HANDLER_OK;
-	}
-	else
-		std::cerr << "Done waiting\n";
 
 	client->closeCgiReadFd();
 	std::vector<pollfd>::iterator cgiReadFdInPool = findFdInPool(data.fdPool, fd.fd);
 	data.fdPool.erase(cgiReadFdInPool);
-
-	//TODO: if error put the exitstatus code on request's error code
-#ifdef DEBUG
-	std::cerr << "Wexitstatus= " << WEXITSTATUS(exitStatus) << '\n';
-	std::cerr << "exitstatus= " << exitStatus << '\n';
-#endif
-
 
 	if ((WIFEXITED(exitStatus) && WEXITSTATUS(exitStatus) == 1) || exitStatus == 500)
 		client->getRequest().getData().code = 500;
 	else
 		client->getRequest().getData().code = 200;
 
-	//TODO: generate response
 #ifdef DEBUG
-	std::cerr << "cgi finished send response\n";
+	std::cerr << "cgi finished\n";
 #endif
 	client->buildResponse();
-	//MAYBE
 
 	std::vector<pollfd>::iterator clientFdInPool = findFdInPool(data.fdPool, client->getFd());
 	if (clientFdInPool == data.fdPool.end())
 		return HANDLER_DISCONNECT;
 	data.fdPool[clientFdInPool - data.fdPool.begin()].events = POLLOUT;
-	#ifdef DEBUG
-	std::cerr << "POLLOUT\n";
-#endif
 	return HANDLER_OK;
 }
 
@@ -148,16 +123,23 @@ HandlerResult clientRecieveHandler(Data& data, pollfd& fd, Client* client)
 			Location location = client->getServer().getServerConfig().findLocation(client->getRequest().getData().uri);
 			if (location.getPath().empty())
 				client->getRequest().getData().code = 403;
+			else if (location.getReturn().second.empty() == false)
+			{
+				client->buildResponse();
+				fd.events = POLLOUT;
+				return HANDLER_OK;
+			}
 #ifdef DEBUG
-			std::cerr << "resolvePath:" << resolvedUri << '\n';
+			std::cerr << "ResolvePath:" << resolvedUri << '\n';
+			std::cerr << "Location:" << location.getPath() << '\n';
 #endif
-			if ( Request::isCgi(client->getRequest().getData().uri, location) == true)
+			if (Request::isCgi(client->getRequest().getData().uri, location) == true)
 			{
 				client->getRequest().getData().isCgi = true;
 				Cgi cgi(client->getServer().getServerConfig(), client->getRequest().getData());
 
 #ifdef DEBUG
-				std::cerr<< " begin cgi execution\n";
+				std::cerr<< "cgi execution starting\n";
 #endif
 				int result = cgi.execute(*client, data.fdPool);
 				client->getRequest().getData().code = result;
@@ -232,7 +214,6 @@ HandlerResult serverEventHandler(Data& data, pollfd& fd)
 		while (1)
 		{
 			Client* client = server->acceptClient();
-			//accept() return -1 but not error
 			if (client == NULL)
 				return HANDLER_OK;
 			data.clients.push_back(client);

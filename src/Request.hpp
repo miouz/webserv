@@ -24,6 +24,7 @@ struct responseRequest
 	std::string	contentType;
 	std::string	content;
 	std::string	cookie;
+	std::string	returnLocation;
 	bool	autoIndex;
 	bool	listDirectory;
 	size_t	contentLength;
@@ -41,7 +42,7 @@ class Request
 		~Request();
 
 		static bool	isMethodAllowed(int, const Location&);
-		static responseRequest	initResponse(const Location&, ParsedData&);
+		static responseRequest	initResponse(const ServerConfig&, const Location&, ParsedData&);
 		static std::string generateResponse(const ServerConfig&, responseRequest&);
 		static std::string getMessageCode(int);
 		static bool	isRedirect(const responseRequest&);

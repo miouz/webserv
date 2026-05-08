@@ -82,8 +82,6 @@ void	Location::checkComplete()
 		throw std::runtime_error("root directive unused");
 	if (this->index.size() == 0)
 		throw std::runtime_error("index directive unused");
-	if (this->_return.first == -1)
-		throw std::runtime_error("return directive unused");
 	if (this->upload_store == "")
 		throw std::runtime_error("upload_store directive unused");
 	if (this->cgi_extension.size() == 0)

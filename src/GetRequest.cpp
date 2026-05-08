@@ -82,7 +82,10 @@ bool	GetRequest::isDirectory(responseRequest& responseData)
 	if (stat(responseData.path.c_str(), &sb) < 0)
 		return false;
 	if (S_ISDIR(sb.st_mode) == true)
+	{
 		responseData.successCode = 301;
+		responseData.uri += '/';
+	}
 	return false;
 }
 

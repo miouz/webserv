@@ -15,7 +15,7 @@ Request::~Request() {}
 
 std::string	Request::response(const ServerConfig& config, ParsedData& data, const Location& location)
 {
-	responseRequest	responseData = initResponse(location, data);
+	responseRequest	responseData = initResponse(config, location, data);
 	static const int	NBR_METHODS = 3;
 	int	method;
 	if (responseData.successCode == 200 && data.isCgi == false)
@@ -61,10 +61,13 @@ bool	Request::isMethodAllowed(int method, const Location& location)
 	return true;
 }
 
-responseRequest	Request::initResponse(const Location& location, ParsedData& data)
+responseRequest	Request::initResponse(const ServerConfig& config,const Location& location, ParsedData& data)
 {
 	responseRequest	 response;
 
+	#ifdef DEBUG
+std::cerr << "iscgi :" << data.isCgi << '\n';
+#endif
 	response.root = location.getRoot() + "/";
 	response.protocol = "HTTP/1.0";
 	response.server = "webserv";
@@ -76,7 +79,16 @@ responseRequest	Request::initResponse(const Location& location, ParsedData& data
 	response.contentLength = response.content.size();
 	response.listDirectory = false;
 	response.autoIndex = location.getAutoindex();
-	response.uri = data.uri;
+	response.returnLocation = location.getReturn().second;
+	if (response.returnLocation.empty() == false)
+	{
+		response.successCode = location.getReturn().first;
+		std::ostringstream	ossPort;
+		ossPort << config.getListen();
+		response.uri = "http://localhost:" + ossPort.str() + "/" + response.returnLocation;
+	}
+	else
+		response.uri = data.uri;
 	response.isCgi = data.isCgi;
 	response.path = location.getRoot() + data.uri;
 	return response;
@@ -114,7 +126,7 @@ std::string	Request::generateResponse(const ServerConfig& config, responseReques
 			response += "Content-length: " + ssContentLen.str() + EOL;
 	}
 	if (isRedirect(responseData))
-		response += "Location: " + responseData.uri + "/" + EOL;
+		response += "Location: " + responseData.uri + EOL;
 	if (responseData.cookie.empty() == false)
 		response += "Set-Cookie: " + responseData.cookie + EOL;
 	response += "Connection: close" + EOL + EOL;
@@ -128,8 +140,11 @@ std::string	Request::generateResponse(const ServerConfig& config, responseReques
 
 bool	Request::isRedirect(const responseRequest& responseData)
 {
-	if (responseData.successCode == 301)
-		return true;
+	static const int	NBR_REDIRECTS = 5;
+	int redirects[5] = {301, 302, 303, 307, 308};
+	for (int i = 0; i < NBR_REDIRECTS; i++)
+		if (responseData.successCode == redirects[i])
+			return true;
 	return false;
 }
 
@@ -143,6 +158,14 @@ std::string	Request::getMessageCode(int code)
 			return "Created";
 		case 301:
 			return "Moved Permanently";
+		case 302:
+			return "Moved Temporarily";
+		case 303:
+			return "See Other";
+		case 307:
+			return "Temporary Redirect";
+		case 308:
+			return "Permanent Redirect";
 		case 400:
 			return "Bad Request";
 		case 403:
@@ -252,7 +275,6 @@ void	Request::parseCgi(ParsedData& data, responseRequest& response)
 			response.contentType = value;
 		if (key == "SET-COOKIE")
 			response.cookie = value;
-
 	}
 	while (data.body.find(EOLEOL) != std::string::npos);
 	response.content = data.body;
