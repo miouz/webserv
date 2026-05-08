@@ -14,6 +14,7 @@
 {
     this->locations = copy.locations;
     this->listen = copy.listen;
+    this->mapExtension = copy.mapExtension;
     this->client_max_body_size = copy.client_max_body_size;
     this->error_page = copy.error_page;
 }
@@ -23,6 +24,7 @@ ServerConfig	&ServerConfig::operator=(const ServerConfig &copy)
     if (this == &copy)
         return (*this);
     this->locations = copy.locations;
+    this->mapExtension = copy.mapExtension;
     this->listen = copy.listen;
     this->client_max_body_size = copy.client_max_body_size;
     this->error_page = copy.error_page;
@@ -33,7 +35,7 @@ ServerConfig	&ServerConfig::operator=(const ServerConfig &copy)
 {
 }
 
-	ServerConfig::ServerConfig(std::ifstream &file, std::map<std::string, std::string> mapExt)
+	ServerConfig::ServerConfig(std::ifstream &file, const std::map<std::string, std::string>& mapExt)
 {
 	std::string	word;
 	std::string words[7] = {"", "{", ";", "location", "error_page", "listen", "client_max_body_size"};
@@ -216,7 +218,7 @@ const std::map<int, std::string>&	ServerConfig::getErrorPage() const
 	return (this->error_page);
 }
 
-std::map<std::string, std::string>	ServerConfig::getMapExtension() const
+const std::map<std::string, std::string>&	ServerConfig::getMapExtension() const
 {
 	return (this->mapExtension);
 }

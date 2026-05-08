@@ -11,7 +11,7 @@ class ServerConfig
 
 public : 
 
-	ServerConfig(std::ifstream &file, std::map<std::string, std::string>);
+	ServerConfig(std::ifstream &file, const std::map<std::string, std::string>& mapExt);
 	ServerConfig(const ServerConfig &copy);
 	ServerConfig &operator=(const ServerConfig &copy);
 	~ServerConfig( void );
@@ -20,7 +20,7 @@ public :
 	int									getListen() const;
 	const std::map<int, std::string>&	getErrorPage() const;
 	int									getClientMaxBodySize() const;
-	std::map<std::string, std::string>	getMapExtension() const;
+	const std::map<std::string, std::string>&	getMapExtension() const;
 	std::string   						resolvePath(const std::string uri) const;
 	Location 							findLocation(std::string&) const;
 
