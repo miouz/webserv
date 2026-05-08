@@ -60,8 +60,11 @@ void	GetRequest::listDirectory(responseRequest& responseData)
 			ss << sb.st_size;
 			responseData.content += "<a href=\"" + std::string(dp->d_name)
 				+ "\">" + std::string(dp->d_name) + "</a>\t\t"
-				+ time + "                  "
-				+ ss.str() + '\n';
+				+ time + "                  ";
+			if (S_ISDIR(sb.st_mode) == true)
+				responseData.content += "-\n";
+			else
+				responseData.content += ss.str() + '\n';
 		}
 		else
 		{
