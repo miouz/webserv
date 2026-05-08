@@ -12,7 +12,8 @@
  * @param creationTime client's creationTime by server
  */
 Client::Client(int fd, Server& server, sockaddr_in& addr, time_t& creationTime): fd_(fd), cgiPid_(0),
-	server_(server), address_(addr), sent_(0), written_(0), status_(CONNECTED), lastActivityTime_(creationTime)
+	server_(server), address_(addr), sent_(0), written_(0), status_(CONNECTED), lastActivityTime_(creationTime),
+	cgiStartTime_(0)
 { cgiFd_[READ] = -1; cgiFd_[WRITE] = -1;}
 
 void Client::closeCgiWriteFd()
@@ -35,7 +36,7 @@ void Client::closeCgiReadFd()
 
 void Client::killCgi()
 {
-	if (cgiPid_ != 0)
+	if (cgiPid_ > 0)
 	{
 		kill(cgiPid_, SIGINT);
 		cgiPid_ = 0;
@@ -271,4 +272,20 @@ void	disconnectClient(int fd, std::vector<Client*>& clients,
 	#endif
 	client->removeFromServer();
 	}
+}
+
+void    Client::setCgiStartTime(time_t t)
+{
+	cgiStartTime_ = t;
+}
+
+time_t  Client::getCgiStartTime() const
+{
+	return cgiStartTime_;
+}
+
+bool    Client::isCgiTimeOut() const
+{
+    return (cgiStartTime_ != 0 &&
+            difftime(time(NULL), cgiStartTime_) > CGI_TIMEOUT_SECONDES);
 }

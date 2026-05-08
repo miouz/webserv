@@ -39,6 +39,37 @@ void cleanTimeOutClient(Data& data)
 	}
 }
 
+void cleanTimeOutCgi(Data& data)
+{
+    for (size_t i = 0; i < data.clients.size(); i++)
+    {
+        Client* client = data.clients[i];
+        if (client->getCgiPid() <= 0 || !client->isCgiTimeOut())
+            continue;
+
+		client->killCgi();
+
+        int readFd = client->getCgiFd()[READ];
+        int writeFd = client->getCgiFd()[WRITE];
+
+        std::vector<pollfd>::iterator it = findFdInPool(data.fdPool, readFd);
+        if (it != data.fdPool.end())
+			data.fdPool.erase(it);
+        it = findFdInPool(data.fdPool, writeFd);
+        if (it != data.fdPool.end())
+			data.fdPool.erase(it);
+
+        client->closeCgiReadFd();
+        client->closeCgiWriteFd();
+        client->getRequest().getData().code = 504;
+        client->buildResponse();
+
+        std::vector<pollfd>::iterator cit = findFdInPool(data.fdPool, client->getFd());
+        if (cit != data.fdPool.end())
+            cit->events = POLLOUT;
+    }
+}
+
 /**
  * @brief this function reads partially the result of cgi execution
  *          and feed the buffer in order to generate the response]
@@ -143,6 +174,8 @@ HandlerResult clientRecieveHandler(Data& data, pollfd& fd, Client* client)
 #endif
 				int result = cgi.execute(*client, data.fdPool);
 				client->getRequest().getData().code = result;
+				if (result == 200)
+					client->setCgiStartTime(time(NULL));
 			}
 			if (client->getRequest().getData().isCgi == false
 				|| client->getRequest().getData().code != 200)
@@ -314,6 +347,7 @@ void pollEventsLoop(Data& data)
 		if (status == 0)
 		{
 			cleanTimeOutClient(data);
+			cleanTimeOutCgi(data);
 			continue;
 		}
 		if (status > 0)

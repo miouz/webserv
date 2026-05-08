@@ -93,6 +93,7 @@ void	ServerConfig::init()
 	this->error_page[403] = "./errors/403.html";
 	this->error_page[404] = "./errors/404.html";
 	this->error_page[500] = "./errors/500.html";
+	this->error_page[504] = "./errors/504.html";
 }
 
 void	ServerConfig::unexpectedEndException(std::string word, std::ifstream &file)

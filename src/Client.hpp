@@ -20,6 +20,7 @@
 
 #define RETURN_ERROR -1
 #define CLIENT_TIMEOUT_SECONDES 30
+#define CGI_TIMEOUT_SECONDES 10
 
 class Server;
 
@@ -49,6 +50,7 @@ class Client
 	size_t			written_;
 	clientStatus	status_;
 	time_t			lastActivityTime_;
+    time_t			cgiStartTime_;
 	RequestParser	request_;
 
 	
@@ -81,6 +83,11 @@ class Client
 	void addCgiFdsToPool(std::vector<pollfd>& fdPool);
 	bool sendResponse();
 	bool cgiWriteBody();
+
+    void    setCgiStartTime(time_t t);
+    time_t  getCgiStartTime() const;
+    bool    isCgiTimeOut() const;
+
 };
 
 std::ostream& operator<<(std::ostream& out, Client& client);
