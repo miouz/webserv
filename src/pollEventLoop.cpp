@@ -148,10 +148,10 @@ HandlerResult clientRecieveHandler(Data& data, pollfd& fd, Client* client)
 		client->getRequest().feed(toFeed);
 		if (client->getRequest().isComplete())
 		{
-			std::string	resolvedUri = client->getServer().getServerConfig().resolvePath(client->getRequest().getData().uri);
+			Location location = client->getServer().getServerConfig().findLocation(client->getRequest().getData().uri);
+			std::string	resolvedUri = client->getServer().getServerConfig().resolvePath(location.getPath() , client->getRequest().getData().uri);
 			if (resolvedUri == "/..")
 				client->getRequest().getData().code = 403;
-			Location location = client->getServer().getServerConfig().findLocation(client->getRequest().getData().uri);
 			if (location.getPath().empty())
 				client->getRequest().getData().code = 403;
 			else if (location.getReturn().second.empty() == false)

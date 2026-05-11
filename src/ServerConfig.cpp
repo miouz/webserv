@@ -270,14 +270,14 @@ Location ServerConfig::findLocation(std::string& uri) const
 	return bestMatch;
 }
 
-std::string    ServerConfig::resolvePath(const std::string uri) const
+std::string    ServerConfig::resolvePath(const std::string& location, const std::string& uri) const
 {
 	std::stack<std::string>	stack;
 	std::string				res;
 	std::string				temp;
 	size_t					pos;
 
-	res = uri;
+	res = uri.substr(location.size());
 	while (res.size() > 1)
 	{
 		pos = res.find("/", 1);

@@ -21,7 +21,7 @@ public :
 	const std::map<int, std::string>&	getErrorPage() const;
 	int									getClientMaxBodySize() const;
 	const std::map<std::string, std::string>&	getMapExtension() const;
-	std::string   						resolvePath(const std::string uri) const;
+	std::string   						resolvePath(const std::string& location, const std::string& uri) const;
 	Location 							findLocation(std::string&) const;
 
 	void						print();
