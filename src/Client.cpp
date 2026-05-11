@@ -13,7 +13,7 @@
  */
 Client::Client(int fd, Server& server, sockaddr_in& addr, time_t& creationTime): fd_(fd), cgiPid_(0),
 	server_(server), address_(addr), sent_(0), written_(0), status_(CONNECTED), lastActivityTime_(creationTime),
-	cgiStartTime_(0)
+	cgiStartTime_(0), request_(server.getClientMaxBodySize())
 { cgiFd_[READ] = -1; cgiFd_[WRITE] = -1;}
 
 void Client::closeCgiWriteFd()

@@ -22,6 +22,7 @@ class RequestParser
 	private:
 		ParsedData	data_;
 		std::string	buffer_;
+		int	max_body_size_;
 		bool	isStartParsed_;
 		bool	isHeadersParsed_;
 		bool	isBodyParsed_;
@@ -42,7 +43,7 @@ class RequestParser
 
 
 	public:
-		RequestParser();
+		RequestParser(int);
 		~RequestParser();
 		void	feed(const std::string&);
 		bool	isComplete() const;

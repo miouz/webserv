@@ -3,7 +3,7 @@
 #include <iostream>
 #include <errno.h>
 
-RequestParser::RequestParser(): buffer_(""), isStartParsed_(false), isHeadersParsed_(false), isBodyParsed_(false)
+RequestParser::RequestParser(int max_body_size): buffer_(""), max_body_size_(max_body_size), isStartParsed_(false), isHeadersParsed_(false), isBodyParsed_(false)
 {
 	data_.code = 200;
 	data_.isCgi = false;
@@ -82,6 +82,12 @@ void	RequestParser::parseBody()
 		errno = 0;
 		
 		long	totalSize = std::strtol(contentLen->second.c_str(), &endptr, 10);
+		if (totalSize > max_body_size_)
+		{
+			endParsing(413);
+			return ;
+
+		}
 		if (errno == ERANGE || (endptr && *endptr))
 		{
 			endParsing(400);

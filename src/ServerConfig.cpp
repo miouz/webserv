@@ -94,6 +94,7 @@ void	ServerConfig::init()
 	this->error_page[400] = "./errors/400.html";
 	this->error_page[403] = "./errors/403.html";
 	this->error_page[404] = "./errors/404.html";
+	this->error_page[413] = "./errors/413.html";
 	this->error_page[500] = "./errors/500.html";
 	this->error_page[504] = "./errors/504.html";
 }
@@ -271,10 +272,10 @@ Location ServerConfig::findLocation(std::string& uri) const
 
 std::string    ServerConfig::resolvePath(const std::string uri) const
 {
-	std::stack<std::string> stack;
-	std::string res;
-	std::string    temp;
-	size_t    pos;
+	std::stack<std::string>	stack;
+	std::string				res;
+	std::string				temp;
+	size_t					pos;
 
 	res = uri;
 	while (res.size() > 1)
@@ -293,7 +294,7 @@ std::string    ServerConfig::resolvePath(const std::string uri) const
 			stack.pop();
 		}
 		else
-		stack.push(temp);
+			stack.push(temp);
 	}
 	while (stack.size() != 0)
 	{

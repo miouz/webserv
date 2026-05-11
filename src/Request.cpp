@@ -172,6 +172,8 @@ std::string	Request::getMessageCode(int code)
 			return "Forbidden";
 		case 404:
 			return "Not Found";
+		case 413:
+			return "Request Entity Too Large";
 		case 500:
 			return "Internal Server Error";
 		default:
