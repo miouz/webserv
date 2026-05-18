@@ -19,7 +19,9 @@ private :
 
 	Config( void );
 	Config(Config &copy);
-	Config &operator=(Config const &copy);
+
+	Config 								&operator=(Config const &copy);
+	std::map<std::string, std::string>	mapExtension();
 
 	std::vector<ServerConfig> servers;
 };

@@ -3,9 +3,10 @@
 #include <iostream>
 #include <errno.h>
 
-RequestParser::RequestParser(): buffer_(""), isStartParsed_(false), isHeadersParsed_(false), isBodyParsed_(false)
+RequestParser::RequestParser(int max_body_size): buffer_(""), max_body_size_(max_body_size), isStartParsed_(false), isHeadersParsed_(false), isBodyParsed_(false)
 {
 	data_.code = 200;
+	data_.isCgi = false;
 }
 
 RequestParser::~RequestParser() {}
@@ -33,14 +34,16 @@ void	RequestParser::parseStartLine()
 	buffer_ = buffer_.substr(found + EOL.size());
 	data_.method = getToken(iss);
 	data_.uri = getToken(iss);
+	removeQueryString(data_.uri, data_.queryString);
 	data_.protocol = getToken(iss);
 	checkStartLine();
 	isStartParsed_ = true;
 
 	#ifdef DEBUG
-		std::cout << "method = [" << data_.method << "]\n";
-		std::cout << "uri = [" << data_.uri << "]\n";
-		std::cout << "protocol = [" << data_.protocol << "]\n";
+		std::cerr << "method = [" << data_.method << "]\n";
+		std::cerr << "uri = [" << data_.uri << "]\n";
+		std::cerr << "protocol = [" << data_.protocol << "]\n";
+		std::cerr << "headers =\n";
 	#endif
 }
 
@@ -51,7 +54,7 @@ void	RequestParser::parseHeaders()
 	std::string	value;
 
 	#ifdef DEBUG
-		std::cout << "\n[key:value]\n";
+		std::cerr << "[key:value]\n";
 	#endif
 	while (buffer_.find("\r\n") != std::string::npos && isComplete() == false)
 	{
@@ -79,6 +82,12 @@ void	RequestParser::parseBody()
 		errno = 0;
 		
 		long	totalSize = std::strtol(contentLen->second.c_str(), &endptr, 10);
+		if (totalSize > max_body_size_)
+		{
+			endParsing(413);
+			return ;
+
+		}
 		if (errno == ERANGE || (endptr && *endptr))
 		{
 			endParsing(400);
@@ -126,14 +135,13 @@ void	RequestParser::setHeader(std::string& key, std::string& value)
 		iss >> token;
 		if (iss >> token)
 		{
-			std::cout << "WTFFFFFF\n";
 			endParsing(400);
 			return ;
 		}
 	}
 
 	#ifdef DEBUG
-		std::cout << "\n[" << key << ":" << value << "]\n";
+		std::cerr << "[" << key << ":" << value << "]\n";
 	#endif
 
 	checkHeaders(key, value);
@@ -194,7 +202,7 @@ bool	RequestParser::isComplete() const
 	return isBodyParsed_;
 }
 
-const ParsedData&	RequestParser::getData() const
+ParsedData&	RequestParser::getData()
 {
 	return data_;
 }
@@ -203,4 +211,18 @@ void	capitalize(std::string& str)
 {
 	for (size_t i = 0; i < str.size(); i++)
 		str[i] = toupper(str[i]);
+}
+
+void	RequestParser::removeQueryString(std::string& uri, std::string& query)
+{
+	size_t	found;
+	found = uri.find('?');
+	if (found == std::string::npos)
+		return ;
+	if (uri.size() >= found + 1)
+		query = uri.substr(found + 1);
+	#ifdef DEBUG
+	std::cerr << "QUERY=[" << query << "]\n";
+	#endif
+	uri = uri.substr(0, found);
 }

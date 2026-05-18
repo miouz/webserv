@@ -60,8 +60,11 @@ void	GetRequest::listDirectory(responseRequest& responseData)
 			ss << sb.st_size;
 			responseData.content += "<a href=\"" + std::string(dp->d_name)
 				+ "\">" + std::string(dp->d_name) + "</a>\t\t"
-				+ time + "                  "
-				+ ss.str() + '\n';
+				+ time + "                  ";
+			if (S_ISDIR(sb.st_mode) == true)
+				responseData.content += "-\n";
+			else
+				responseData.content += ss.str() + '\n';
 		}
 		else
 		{
@@ -82,7 +85,10 @@ bool	GetRequest::isDirectory(responseRequest& responseData)
 	if (stat(responseData.path.c_str(), &sb) < 0)
 		return false;
 	if (S_ISDIR(sb.st_mode) == true)
+	{
 		responseData.successCode = 301;
+		responseData.uri += '/';
+	}
 	return false;
 }
 
@@ -146,4 +152,3 @@ void	GetRequest::serveFile(responseRequest& responseData)
 		responseData.contentLength = responseData.content.size();
 	}
 }
-

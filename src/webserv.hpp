@@ -7,6 +7,7 @@
 
 
 #include "Server.hpp"
+#include "Cgi.hpp"
 #include "Client.hpp"
 #include "Config.hpp"
 #include "Location.hpp"
@@ -35,6 +36,7 @@ void initSignals();
 std::vector<ServerConfig>	argsToServerConfigs(int ac, char** av);
 void						configWebServers(std::vector<ServerConfig>& webserv, Data& data);
 void						setUpServers(Data& data);
+std::vector<pollfd>::iterator findFdInPool(std::vector<pollfd>& fdPool, int fd);
 void						pollEventsLoop(Data& data);
 void						shutDownServers(std::vector<Server*>& servers);
 

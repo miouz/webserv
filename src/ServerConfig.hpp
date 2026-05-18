@@ -11,17 +11,18 @@ class ServerConfig
 
 public : 
 
-	ServerConfig(std::ifstream &file);
+	ServerConfig(std::ifstream &file, const std::map<std::string, std::string>& mapExt);
 	ServerConfig(const ServerConfig &copy);
 	ServerConfig &operator=(const ServerConfig &copy);
 	~ServerConfig( void );
 
 	const std::vector<Location>&		getLocations() const;
-	int							getListen();
+	int									getListen() const;
 	const std::map<int, std::string>&	getErrorPage() const;
-	int							getClientMaxBodySize() const;
-	std::string    resolvePath(const std::string uri) const;
-	Location findLocation(std::string&) const;
+	int									getClientMaxBodySize() const;
+	const std::map<std::string, std::string>&	getMapExtension() const;
+	std::string   						resolvePath(const std::string& location, const std::string& uri) const;
+	Location 							findLocation(std::string&) const;
 
 	void						print();
 
@@ -39,10 +40,12 @@ private :
 	void	init();
 	void	checkComplete();
 
-	std::vector<Location>		locations;
-	int							listen;
-	std::map<int, std::string>	error_page;
-	int							client_max_body_size;
+	std::vector<Location>				locations;
+	int									listen;
+	std::map<int, std::string>			error_page;
+	int									client_max_body_size;
+	std::map<std::string, std::string>	mapExtension;
+
 };
 
 bool	isReadableNumber(std::string word);

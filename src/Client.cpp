@@ -1,5 +1,6 @@
 #include "Client.hpp"
 #include "Server.hpp"
+#include "Cgi.hpp"
 
 /**
  * @brief this constructor setup the client's attributes,
@@ -10,8 +11,37 @@
  * @param addr client's address
  * @param creationTime client's creationTime by server
  */
-Client::Client(int fd, Server& server, sockaddr_in& addr, time_t& creationTime): fd_(fd), server_(server), 
-	address_(addr),sent_(0), status_(CONNECTED), lastActivityTime_(creationTime){ }
+Client::Client(int fd, Server& server, sockaddr_in& addr, time_t& creationTime): fd_(fd), cgiPid_(0),
+	server_(server), address_(addr), sent_(0), written_(0), status_(CONNECTED), lastActivityTime_(creationTime),
+	cgiStartTime_(0), request_(server.getClientMaxBodySize())
+{ cgiFd_[READ] = -1; cgiFd_[WRITE] = -1;}
+
+void Client::closeCgiWriteFd()
+{
+	if (cgiFd_[WRITE] != -1)
+	{
+		close(cgiFd_[WRITE]);
+		cgiFd_[WRITE] = -1;
+	}
+}
+
+void Client::closeCgiReadFd()
+{
+	if (cgiFd_[READ] != -1)
+	{
+		close(cgiFd_[READ]);
+		cgiFd_[READ] = -1;
+	}
+}
+
+void Client::killCgi()
+{
+	if (cgiPid_ > 0)
+	{
+		kill(cgiPid_, SIGINT);
+		cgiPid_ = 0;
+	}
+}
 
 void Client::closeClient()
 {
@@ -20,6 +50,9 @@ void Client::closeClient()
 		close(fd_);
 		fd_ = -1;
 	}
+	closeCgiReadFd();
+	closeCgiWriteFd();
+	killCgi();
 }
 
 Client::~Client()
@@ -27,10 +60,13 @@ Client::~Client()
 	closeClient();
 }
 
-Client::Client(const Client& other): fd_(other.fd_), server_(other.server_), address_(other.address_),
-	 bufferOut_(other.bufferOut_), sent_(other.sent_), status_(other.status_), lastActivityTime_(other.lastActivityTime_){ }
-
 int Client::getFd() const {return fd_;}
+
+int* Client::getCgiFd() { return cgiFd_;}
+
+pid_t Client::getCgiPid() const {return cgiPid_;}
+
+void Client::setCgiPid(pid_t pid) { cgiPid_ = pid;}
 
 sockaddr_in& Client::getAddress() { return address_;}
 
@@ -84,28 +120,53 @@ void Client::updateLastActivityTime()
 	lastActivityTime_ = now;
 }
 
+void Client::addCgiFdsToPool(std::vector<pollfd>& fdPool)
+{
+	if (cgiFd_[READ] != -1)
+	{
+		pollfd readfd = fdToPollfdWithStatus(cgiFd_[READ], POLLIN);
+		fdPool.push_back(readfd);
+	}
+	if (cgiFd_[WRITE] != -1)
+	{
+		pollfd writefd = fdToPollfdWithStatus(cgiFd_[WRITE], POLLOUT);
+		fdPool.push_back(writefd);
+	}
+}
+
 /**
  * @brief [TODO: build request response]
  */
 void Client::buildResponse()
 {
-	ParsedData	data = request_.getData();
-	ServerConfig config = server_.getServerConfig();
-	std::string	resolvedUri = config.resolvePath(data.uri);
-	if (resolvedUri == "/..")
-		data.code = 403;
-	Location location = config.findLocation(data.uri);
-	if (location.getPath().empty())
-		data.code = 403;
-	#ifdef DEBUG
-		std::cout << "resolvePath:" << resolvedUri << '\n';
-		std::cout << "Location:" << location.getPath() << '\n';
-	#endif
-	bufferOut_ = Request::response(config, data, location);
+	Location location = server_.getServerConfig().findLocation(request_.getData().uri);
+	bufferOut_ = Request::response(server_.getServerConfig(), request_.getData(), location);
 }
 
 /**
- * @brief [TODO:send request response]
+ * @brief write body to pipeIn write side for cgi's stdin 
+ *
+ * @return fully written true or false
+ */
+bool Client::cgiWriteBody()
+{
+	std::string body = request_.getData().body;
+	if (written_ < body.size())
+	{
+		ssize_t written = write(cgiFd_[WRITE], body.c_str() + written_, body.size() - written_);
+		if (written >= 0)
+		{
+			written_ += written;
+			if (written_ < body.size())
+			return false;
+		}
+	}
+	return true;
+}
+
+/**
+ * @brief send request response
+ * @return fully sent true or false
  */
 bool Client::sendResponse()
 {
@@ -122,11 +183,19 @@ bool Client::sendResponse()
 	return true;
 }
 
+/**
+ * @brief find which Client holds the fd as socket's fd or his cgi's fd
+ *
+ * @param fd the fd to find
+ * @param clients vector of pointers to Client
+ * @return the found Client's address or NULL
+ */
 Client* findClient(int fd, std::vector<Client*>& clients)
 {
 	for (size_t i = 0; i < clients.size(); i++)
 	{
-		if (fd == clients[i]->getFd())
+		if (fd == clients[i]->getFd() || fd == clients[i]->getCgiFd()[READ]
+			|| fd == clients[i]->getCgiFd()[WRITE])
 			return (clients[i]);
 	}
 	return NULL;
@@ -156,6 +225,17 @@ std::ostream& operator<<(std::ostream& out, Client& client)
 	return out;
 }
 
+
+std::vector<pollfd>::iterator findFdInPool(std::vector<pollfd>& fdPool, int fd)
+{
+	for(size_t i = 0; i < fdPool.size(); i++)
+	{
+		if (fd == fdPool[i].fd)
+			return fdPool.begin() + i;
+	}
+	return fdPool.end();
+}
+
 /**
  * @brief this function disconnect a client and clean its resources:
  * firstly it removes its pollfd from the fdPool for poll() to watch,
@@ -178,12 +258,34 @@ void	disconnectClient(int fd, std::vector<Client*>& clients,
 	Client* client = findClient(fd, clients);
 	if (client)
 	{
+		std::vector<pollfd>::iterator readFound = findFdInPool(fdPool, client->getCgiFd()[READ]);
+		if (readFound != fdPool.end())
+			fdPool.erase(readFound);
+		std::vector<pollfd>::iterator writeFound = findFdInPool(fdPool, client->getCgiFd()[WRITE]);
+		if (writeFound != fdPool.end())
+			fdPool.erase(writeFound);
 		std::vector<Client*>::iterator clientFound = std::find(clients.begin(),
 														 clients.end(), client);
 		clients.erase(clientFound);
 	#ifdef DEBUG
-	std::cout << "\nClient on fd " << client->getFd() << " is DISCONNECTED now\n";
+	std::cerr << "\nClient on fd " << client->getFd() << " is DISCONNECTED now\n";
 	#endif
 	client->removeFromServer();
 	}
+}
+
+void    Client::setCgiStartTime(time_t t)
+{
+	cgiStartTime_ = t;
+}
+
+time_t  Client::getCgiStartTime() const
+{
+	return cgiStartTime_;
+}
+
+bool    Client::isCgiTimeOut() const
+{
+    return (cgiStartTime_ != 0 &&
+            difftime(time(NULL), cgiStartTime_) > CGI_TIMEOUT_SECONDES);
 }
