@@ -84,7 +84,7 @@ static void test_multiple_error_pages(void)
     Config c( "test/config-parser-test/multiple-error-pages.txt");
     std::map<int, std::string> ep = c.getServers()[0].getErrorPage();
     ASSERT_EQ("error_page count", (size_t)5, ep.size());
-    ASSERT_EQ("404 page", std::string("error/error404"), ep[404]);
+    ASSERT_EQ("404 page", std::string("error/404.html"), ep[404]);
     ASSERT_EQ("500 page", std::string("error/error500"), ep[500]);
     SUITE_END();
 }

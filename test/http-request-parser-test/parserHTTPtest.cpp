@@ -6,7 +6,7 @@
 // Local Helper
 static RequestParser make_parser(std::string raw)
 {
-    RequestParser p;
+    RequestParser p(100000000);
     p.feed(raw);
     return p;
 }
