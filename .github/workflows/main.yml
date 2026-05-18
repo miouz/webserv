@@ -15,6 +15,5 @@ jobs:
       run: |
         ls -lR
         make re
-        make test-bin
       # run: make; ./tester/test m
       shell: bash

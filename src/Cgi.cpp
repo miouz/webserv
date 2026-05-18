@@ -35,116 +35,168 @@ Cgi	&Cgi::operator=(Cgi const &copy)
 	method        = request.method;
 	body          = request.body;
 	contentLength = request.body.size();
+	request.body = "";
 
 	std::string uri = request.uri;
-	size_t qPos = uri.find('?');
-	std::string uriWithoutQuery = (qPos != std::string::npos) ? uri.substr(0, qPos) : uri;
-	queryString = (qPos != std::string::npos) ? uri.substr(qPos + 1) : "";
+	queryString = request.queryString;
 
 	Location loc = findLocation(uri, server);
 	std::map<std::string, std::string> cgiMap = loc.getCgiExtension();
 	std::map<std::string, std::string>::iterator it;
 	for (it = cgiMap.begin(); it != cgiMap.end(); ++it)
 	{
-		size_t extPos = uriWithoutQuery.find(it->first);
+		size_t extPos = uri.find(it->first);
 		if (extPos != std::string::npos)
 		{
-			scriptName = uriWithoutQuery.substr(0, extPos + it->first.size());
-			pathInfo   = uriWithoutQuery.substr(extPos + it->first.size());
+			ext = it->first;
+			scriptName = uri.substr(0, extPos + it->first.size());
+			pathInfo   = uri.substr(extPos + it->first.size());
 			interpreterPath = it->second;
 			break;
 		}
-	}	
+	}
 
 	scriptPath  = loc.getRoot() + scriptName;
 	workingDir  = scriptPath.substr(0, scriptPath.rfind('/'));
 
 	serverPort = server.getListen();
 
-	std::map<std::string,std::string>::const_iterator ctIt = request.headers.find("Content-Type");
+	std::map<std::string,std::string>::const_iterator ctIt = request.headers.find("CONTENT-TYPE");
 	contentType = (ctIt != request.headers.end()) ? ctIt->second : "";
+	ctIt = request.headers.find("COOKIE");
+	httpCookie = (ctIt != request.headers.end()) ? ctIt->second : "";
 	for (std::map<std::string,std::string>::const_iterator h = request.headers.begin(); h != request.headers.end(); ++h)
 	{
-		if (h->first == "Content-Type" || h->first == "Content-Length")
+		if (h->first == "CONTENT-TYPE" || h->first == "CONTENT-LENGTH")
 			continue;
 		std::string key = "HTTP_";
 		for (size_t i = 0; i < h->first.size(); i++)
 			key += (h->first[i] == '-') ? '_' : toupper(h->first[i]);
 		httpHeaders[key] = h->second;
 	}
+	#ifdef DEBUG
+	std::cerr << "scriptPath:"       << scriptPath << '\n';
+	std::cerr << "interpreterPath:"  << interpreterPath << '\n';
+	std::cerr << "workingDir:"       << workingDir << '\n';
+	std::cerr << "method:"           << method << '\n';          
+	std::cerr << "queryString:"      << queryString << '\n';     
+	std::cerr << "body:"             << body << '\n';            
+	std::cerr << "contentType:"      << contentType << '\n';     
+	std::cerr << "contentLength:"    << contentLength << '\n';   
+	std::cerr << "serverPort:"       << serverPort << '\n';
+	std::cerr << "scriptName:"       << scriptName << '\n';
+	std::cerr << "pathInfo:"         << pathInfo << '\n';
+#endif
 }
 
-int Cgi::execute(std::string &response)
+int Cgi::execute(Client& client, std::vector<pollfd>& fdPool)
 {
-	int      pipein[2];
-	int      pipeout[2];
+	int      pipein[2] = {-1, -1};
+	int      pipeout[2] = {-1, -1};
 	pid_t    pid;
 	char**   env;
 
-	if (access(scriptPath.c_str(), F_OK | X_OK) != 0)
+	#ifdef DEBUG
+	std::cerr << "access " << scriptPath << '\n';
+#endif
+	if (access(scriptPath.c_str(), F_OK) != 0)
 		return (404);
+	if (access(scriptPath.c_str(), X_OK) != 0)
+		return (403);
 
 	env = buildEnv();
+	#ifdef DEBUG
+	int i = 0;
+	while (env[i])
+	{
+		std::cerr << "env[" << i << "] = " << env[i] << '\n';
+		i++;
+	}
+#endif
 
-	if (pipe(pipein) < 0 || pipe(pipeout) < 0)
+	if (pipe(pipeout) == RETURN_ERROR)
 	{
 		freeEnv(env);
 		return (500);
 	}
+	if (method == "POST")
+	{
+		if (pipe(pipein) == RETURN_ERROR)
+		{
+			freeEnv(env);
+			close(pipeout[READ]);
+			close(pipeout[WRITE]);
+			return (500);
+		}
+	}
 
 	pid = fork();
+
 	if (pid < 0)
 	{
 		freeEnv(env);
+		close(pipeout[READ]);
+		close(pipeout[WRITE]);
+		if (pipein[READ] != -1)
+			close(pipein[READ]);
+		if (pipein[WRITE] != -1)
+			close(pipein[WRITE]);
 		return (500);
+	}
+
+	if (pid > 0)
+	{
+		if (pipein[READ] != -1)
+			close(pipein[READ]);
+		close(pipeout[WRITE]);
+		if (method == "POST")
+		{
+			client.getCgiFd()[WRITE] = pipein[WRITE];
+			fcntl(pipein[WRITE], F_SETFL, O_NONBLOCK);
+		}
+		client.getCgiFd()[READ] = pipeout[READ];
+		fcntl(pipeout[READ], F_SETFL, O_NONBLOCK);
+		client.setCgiPid(pid);
+		client.addCgiFdsToPool(fdPool);
+		freeEnv(env);
+		#ifdef DEBUG
+		std::cerr << "RETURN 200\n";
+		#endif
+		return (200);
 	}
 
 	if (pid == 0)
 		execChild(env, pipein, pipeout);
-
-	close(pipein[0]);
-	close(pipeout[1]);
-
-	if (method == "POST" && !body.empty())
-		write(pipein[1], body.c_str(), body.size());
-	close(pipein[1]);
-
-	freeEnv(env);
-
-	int exitStatus;
-
-	response = readAll(pipeout[0]);
-	close(pipeout[0]);
-	waitpid(pid, &exitStatus, 0);
-
-	if (WIFEXITED(exitStatus) && WEXITSTATUS(exitStatus) == 0)
-		return (200);
 	return (500);
-}
-
-std::string readAll(int fd)
-{
-	std::string content;
-	char        buffer[4096];
-	ssize_t     bytes;
-
-	while ((bytes = read(fd, buffer, sizeof(buffer))) > 0)
-		content.append(buffer, bytes);
-	return content;
 }
 
 void	Cgi::execChild(char** env, int* pipein, int*pipeout)
 {
-	dup2(pipein[0], 0);
-	dup2(pipeout[1], 1);
-	close(pipein[1]);
-	close(pipeout[0]);
-	chdir(workingDir.c_str());
+	close(pipeout[READ]);
+	if (pipein[WRITE] != -1)
+		close(pipein[WRITE]);
+	if (pipein[READ] != -1)
+	{
+		dup2(pipein[READ], STDIN_FILENO);
+		close(pipein[READ]);
+	}
+	dup2(pipeout[WRITE], STDOUT_FILENO);
+	close(pipeout[WRITE]);
 	char* argv[3];
-	argv[0] = const_cast<char*>(interpreterPath.c_str());
+	if (ext == "php")
+		argv[0] = const_cast<char*>("/usr/bin/php");
+	else if (ext == "py")
+		argv[0] = const_cast<char*>("/usr/bin/python3");
+	else
+	{
+		freeEnv(env);
+		exit(1);
+	}
 	argv[1] = const_cast<char*>(scriptPath.c_str());
 	argv[2] = NULL;
 	execve(argv[0], argv, env);
+	freeEnv(env);
+
 	exit(1);
 }
 
@@ -158,6 +210,7 @@ char** Cgi::buildEnv()
 	envVec.push_back("SCRIPT_FILENAME=" + scriptPath);
 	envVec.push_back("SCRIPT_NAME="     + scriptName);
 	envVec.push_back("PATH_INFO="       + pathInfo);
+	envVec.push_back("HTTP_COOKIE="     + httpCookie);
 	std::ostringstream ossPort;
 	ossPort << serverPort;
 	envVec.push_back("SERVER_PORT=" + ossPort.str());

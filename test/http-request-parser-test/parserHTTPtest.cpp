@@ -6,7 +6,7 @@
 // Local Helper
 static RequestParser make_parser(std::string raw)
 {
-    RequestParser p;
+    RequestParser p(100000000);
     p.feed(raw);
     return p;
 }
@@ -59,7 +59,7 @@ static void test_missing_protocol(void)
     ASSERT_EQ("method",    std::string("GET"),   p.getData().method);
     ASSERT_EQ("uri",       std::string("/"),        p.getData().uri);
     ASSERT_EQ("protocol",  std::string(""), p.getData().protocol);
-	ASSERT_EQ("code", 200, p.getData().code);
+	ASSERT_EQ("code", 400, p.getData().code);
     SUITE_END();
 }
 

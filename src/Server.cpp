@@ -42,7 +42,7 @@ void Server::closeServer()
 	{
 		close(sockFd_);
 	#ifdef DEBUG
-	std::cout << "Server on fd " << sockFd_ << " is shut down\n";
+	std::cerr << "Server on fd " << sockFd_ << " is shut down\n";
 	#endif
 		sockFd_ = -1;
 	}
@@ -99,7 +99,7 @@ Client* Server::acceptClient()
 void Server::setUpServer(void)
 {
 	#ifdef DEBUG
-	std::cout << "Setting up server on port " << config_.getListen() << "\n";
+	std::cerr << "Setting up server on port " << config_.getListen() << "\n";
 	#endif
 	int yes = 1;
 	sockFd_ = socket(PF_INET, SOCK_STREAM, 0);

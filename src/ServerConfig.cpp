@@ -1,7 +1,10 @@
 #include "ServerConfig.hpp"
-#include "Config.hpp"
+#include "Location.hpp"
 #include <iostream>
 #include <fstream>
+#include <stack>
+#include <stdio.h>
+#include <unistd.h>
 
 	ServerConfig::ServerConfig( void )
 {
@@ -11,6 +14,7 @@
 {
     this->locations = copy.locations;
     this->listen = copy.listen;
+    this->mapExtension = copy.mapExtension;
     this->client_max_body_size = copy.client_max_body_size;
     this->error_page = copy.error_page;
 }
@@ -20,6 +24,7 @@ ServerConfig	&ServerConfig::operator=(const ServerConfig &copy)
     if (this == &copy)
         return (*this);
     this->locations = copy.locations;
+    this->mapExtension = copy.mapExtension;
     this->listen = copy.listen;
     this->client_max_body_size = copy.client_max_body_size;
     this->error_page = copy.error_page;
@@ -30,7 +35,7 @@ ServerConfig	&ServerConfig::operator=(const ServerConfig &copy)
 {
 }
 
-	ServerConfig::ServerConfig(std::ifstream &file)
+	ServerConfig::ServerConfig(std::ifstream &file, const std::map<std::string, std::string>& mapExt)
 {
 	std::string	word;
 	std::string words[7] = {"", "{", ";", "location", "error_page", "listen", "client_max_body_size"};
@@ -38,6 +43,7 @@ ServerConfig	&ServerConfig::operator=(const ServerConfig &copy)
 			 &ServerConfig::setLocation, &ServerConfig::setErrorPage, &ServerConfig::setListen, &ServerConfig::setCMBS};
 
 	this->init();
+	mapExtension = mapExt;
 	word = getnextword(file);
 	if (word != "{")
 		throw std::runtime_error("directive \"server\" has no opening \"{\"");
@@ -63,20 +69,34 @@ ServerConfig	&ServerConfig::operator=(const ServerConfig &copy)
 
 void	ServerConfig::checkComplete()
 {
+    std::map<int, std::string>::const_iterator it;
+
 	if (this->listen == -1)
-		throw std::runtime_error("listen directive unused");
+			throw std::runtime_error("listen directive unused");
 	if (this->client_max_body_size == -1)
-		throw std::runtime_error("client_max_body_size directive unused");
+			throw std::runtime_error("client_max_body_size directive unused");
 	if (this->locations.size() == 0)
-		throw std::runtime_error("location directive unused");
-	if (this->error_page.size() == 0)
-		throw std::runtime_error("error_page directive unused");
+			throw std::runtime_error("location directive unused");
+    for (it = error_page.begin(); it != error_page.end(); ++it)
+		if (access(it->second.c_str(), R_OK) != 0)
+			throw std::runtime_error("Error opening file: " + it->second);
 }
 
 void	ServerConfig::init()
 {
     this->listen = -1;
 	this->client_max_body_size = -1;
+	this->error_page[301] = "./errors/301.html";
+	this->error_page[302] = "./errors/302.html";
+	this->error_page[303] = "./errors/303.html";
+	this->error_page[307] = "./errors/307.html";
+	this->error_page[308] = "./errors/308.html";
+	this->error_page[400] = "./errors/400.html";
+	this->error_page[403] = "./errors/403.html";
+	this->error_page[404] = "./errors/404.html";
+	this->error_page[413] = "./errors/413.html";
+	this->error_page[500] = "./errors/500.html";
+	this->error_page[504] = "./errors/504.html";
 }
 
 void	ServerConfig::unexpectedEndException(std::string word, std::ifstream &file)
@@ -186,17 +206,22 @@ const std::vector<Location>&		ServerConfig::getLocations() const
 {
 	return (this->locations);
 }
-int							ServerConfig::getListen()
+int							ServerConfig::getListen() const
 {
 	return (this->listen);
 }
-int							ServerConfig::getClientMaxBodySize()
+int							ServerConfig::getClientMaxBodySize() const
 {
 	return (this->client_max_body_size);
 }
 const std::map<int, std::string>&	ServerConfig::getErrorPage() const
 {
 	return (this->error_page);
+}
+
+const std::map<std::string, std::string>&	ServerConfig::getMapExtension() const
+{
+	return (this->mapExtension);
 }
 
 void	ServerConfig::print()
@@ -210,7 +235,7 @@ void	ServerConfig::print()
 	std::cout << "error pages " << " : " << "\n";
 	while (it != error_page.end())
 	{
-   		std::cout << it->first << " " << it->second << "\n";
+		std::cout << it->first << " " << it->second << "\n";
 		it++;
 	}
 	i = 0;
@@ -222,3 +247,63 @@ void	ServerConfig::print()
 		std::cout << "\n";
 	}
 }
+
+Location ServerConfig::findLocation(std::string& uri) const
+{
+	std::vector<Location> locations = getLocations();
+	Location bestMatch;
+	size_t bestLen;
+
+	bestLen = 0;
+	for (size_t i = 0; i < locations.size(); i++)
+	{
+		std::string locPath = locations[i].getPath();
+		if (uri.find(locPath) == 0)
+		{
+			if (locPath.size() > bestLen)
+			{
+				bestLen   = locPath.size();
+				bestMatch = locations[i];
+			}
+		}
+	}
+	return bestMatch;
+}
+
+std::string    ServerConfig::resolvePath(const std::string& location, const std::string& uri) const
+{
+	std::stack<std::string>	stack;
+	std::string				res;
+	std::string				temp;
+	size_t					pos;
+
+	res = uri.substr(location.size());
+	while (res.size() > 1)
+	{
+		pos = res.find("/", 1);
+		if (pos == std::string::npos)
+			pos = res.size();
+		temp = res.substr(0, pos);
+		res = res.substr(pos);
+		if (temp == "/" || temp == "/.")
+			continue ;
+		if (temp == "/..")
+		{
+			if (stack.size() == 0)
+				return ("/..");
+			stack.pop();
+		}
+		else
+			stack.push(temp);
+	}
+	while (stack.size() != 0)
+	{
+		res = stack.top() + res;
+		stack.pop();
+	}
+	if (res.empty())
+		return ("/");
+	return (res);
+}
+
+
