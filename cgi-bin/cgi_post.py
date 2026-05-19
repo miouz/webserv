@@ -236,7 +236,7 @@ if method == "POST":
         <span class="key">message</span>
         <span class="val">{message if message else "—"}</span>
       </div>
-      <a class="back" href="/cgi-bin/cgi_post.py">← retour au formulaire</a>
+      <a class="back" href="/cgi-bin/cgi_post.py">← back to form </a>
       <div class="footer">200 OK &nbsp;·&nbsp; method: POST &nbsp;·&nbsp; body parsed<span class="cursor"></span></div>
     </div>
   </div>
