@@ -36,3 +36,4 @@ AI was used for:
 - Tasks division and global milestones organization
 - Mentoring on new functions and concept learning
 - Insights on building test files
+- Scripts for testing CGI execution in cgi-bin
