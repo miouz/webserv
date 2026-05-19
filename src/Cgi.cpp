@@ -182,18 +182,10 @@ void	Cgi::execChild(char** env, int* pipein, int*pipeout)
 	}
 	dup2(pipeout[WRITE], STDOUT_FILENO);
 	close(pipeout[WRITE]);
-	char* argv[3];
-	if (ext == "php")
-		argv[0] = const_cast<char*>("/usr/bin/php");
-	else if (ext == "py")
-		argv[0] = const_cast<char*>("/usr/bin/python3");
-	else
-	{
-		freeEnv(env);
-		exit(1);
-	}
-	argv[1] = const_cast<char*>(scriptPath.c_str());
-	argv[2] = NULL;
+	char* argv[2];
+	scriptPath = "./" + scriptPath;
+	argv[0] = const_cast<char*>(scriptPath.c_str());
+	argv[1] = NULL;
 	execve(argv[0], argv, env);
 	freeEnv(env);
 
@@ -204,6 +196,7 @@ char** Cgi::buildEnv()
 {
 	std::vector<std::string> envVec;
 
+	envVec.push_back("REDIRECT_STATUS=200");
 	envVec.push_back("REQUEST_METHOD="  + method);
 	envVec.push_back("QUERY_STRING="    + queryString);
 	envVec.push_back("CONTENT_TYPE="    + contentType);
